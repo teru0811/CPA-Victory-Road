@@ -18,7 +18,7 @@ def get_image_base64(path):
 
 back_b64 = get_image_base64("back.png")
 
-# --- 3. 💖 デザイン設定 (リロードしても崩れない安定版) 💖 ---
+# --- 3. 💖 見やすさ重視のデザイン (CSS) 💖 ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -26,20 +26,12 @@ st.markdown(f"""
         background-size: cover;
         background-attachment: fixed;
     }}
-    [data-testid="stAppViewBlockContainer"] {{ opacity: 1 !important; }}
     
+    /* 📌 最上部の格言：背景を白くして読みやすく */
     .top-message {{
         text-align: center; padding: 15px; font-size: 20px; font-weight: 800;
-        color: #0071BC; background: rgba(255, 255, 255, 0.7);
+        color: #0071BC; background: rgba(255, 255, 255, 0.8);
         border-bottom: 3px solid #80D8FF; margin: -10px -10px 20px -10px;
-    }}
-
-    .main-panel {{
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 25px;
-        padding: 25px;
-        backdrop-filter: blur(8px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.1);
     }}
 
     .rainbow-header {{
@@ -47,9 +39,14 @@ st.markdown(f"""
         border: 4px solid #80D8FF; padding: 15px; text-align: center; margin-bottom: 20px;
     }}
     
+    /* 📌 カード類：透かさない「白」で視認性を確保 */
     .money-card, .pop-card {{
-        background: white; border-radius: 20px;
-        padding: 20px; border: 2px solid #B3E5FC; margin-bottom: 15px;
+        background: white !important; 
+        border-radius: 20px;
+        padding: 20px; 
+        border: 2px solid #B3E5FC; 
+        margin-bottom: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }}
 
     .stButton > button {{
@@ -59,6 +56,12 @@ st.markdown(f"""
     .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #4FC3F7 0%, #81D4FA 100%) !important; color: white !important; }}
     .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #26C6DA 0%, #80DEEA 100%) !important; color: white !important; }}
     
+    /* 修正ボタンは控えめに */
+    div.stButton > button[key*="undo"] {{
+        height: 35px !important; font-size: 13px !important; background: #f8f9fa !important; color: #999 !important;
+    }}
+
+    /* 褒めアクション */
     .praise-action {{
         position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%);
         font-size: 100px; font-weight: 900; z-index: 9999; pointer-events: none;
@@ -73,15 +76,13 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 💎 データの永続保存（リロード対策） 💎 ---
-# localStorageからデータを取得（IDを固定）
-key_z, key_k, key_m = 'cpa_final_data_z', 'cpa_final_data_k', 'cpa_final_data_money'
+# --- 4. 💎 データの保存機能 💎 ---
+key_z, key_k, key_m = 'cpa_storage_z', 'cpa_storage_k', 'cpa_storage_money'
 
 s_z = st_javascript(f"localStorage.getItem('{key_z}');")
 s_k = st_javascript(f"localStorage.getItem('{key_k}');")
 s_m = st_javascript(f"localStorage.getItem('{key_m}');")
 
-# セッション状態を初期化
 if 'z' not in st.session_state:
     st.session_state.z = int(s_z) if s_z and s_z != "null" else 39
 if 'k' not in st.session_state:
@@ -94,7 +95,6 @@ def save_all():
     st_javascript(f"localStorage.setItem('{key_k}', '{st.session_state.k}');")
     st_javascript(f"localStorage.setItem('{key_m}', '{st.session_state.money}');")
 
-# 📣 格言
 if 'daily_msg' not in st.session_state:
     st.session_state.daily_msg = random.choice([
         "今日の一歩が、合格発表の日の自分を救う。🔥",
@@ -104,11 +104,15 @@ if 'daily_msg' not in st.session_state:
 
 # --- 5. メイン表示 ---
 st.markdown(f'<div class="top-message">🧸 {st.session_state.daily_msg}</div>', unsafe_allow_html=True)
-st.markdown('<div class="main-panel">', unsafe_allow_html=True)
 
 goal_date = date(2026, 5, 31) 
 days_left = (goal_date - date.today()).days
-st.markdown(f'<div class="rainbow-header"><h2 style="margin:0; color:#0091EA;">💎 クマ勉ログ 💎</h2><p style="margin:0; font-weight:bold; color:#666;">完走まで あと {max(0, days_left)} 日</p></div>', unsafe_allow_html=True)
+st.markdown(f'''
+    <div class="rainbow-header">
+        <h2 style="margin:0; color:#0091EA;">💎 クマ勉ログ 💎</h2>
+        <p style="margin:0; font-weight:bold; color:#666;">目標完走まで あと {max(0, days_left)} 日</p>
+    </div>
+    ''', unsafe_allow_html=True)
 
 col_a, col_b = st.columns([1, 1.5])
 with col_a:
@@ -163,5 +167,3 @@ with col_2:
     if st.button("❄️ 管理ポチッ！", key="k_btn"): click("k", True)
     if st.button("修正: 管-1 & ¥-100", key="k_undo"): click("k", False)
     st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown('</div>', unsafe_allow_html=True)
