@@ -28,6 +28,20 @@ st.markdown(f"""
     }}
     [data-testid="stAppViewBlockContainer"] {{ opacity: 1 !important; }}
     
+    /* 📌 画面最上部のメッセージ（ポップさを抑えて文字を強調） */
+    .top-message {{
+        text-align: center;
+        padding: 15px 10px;
+        font-size: 20px;
+        font-weight: 800;
+        color: #0071BC; /* 落ち着いた濃い水色 */
+        letter-spacing: 1px;
+        background: rgba(255, 255, 255, 0.4); /* 背景は薄く */
+        border-bottom: 2px solid rgba(0, 176, 255, 0.3);
+        margin-bottom: 20px;
+        line-height: 1.4;
+    }}
+
     .praise-action {{
         position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%);
         font-size: 120px; font-weight: 900;
@@ -64,22 +78,17 @@ st.markdown(f"""
     .stButton > button {{
         width: 100% !important; height: 65px !important; font-size: 20px !important;
         font-weight: bold !important; border-radius: 35px !important; 
-        transition: 0.3s; border: 3px solid #FFFFFF !important;
+        border: 3px solid #FFFFFF !important;
     }}
-    .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #4FC3F7 0%, #81D4FA 100%) !important; color: white !important; box-shadow: 0 6px 0px #039BE5 !important; }}
-    .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #26C6DA 0%, #80DEEA 100%) !important; color: white !important; box-shadow: 0 6px 0px #00ACC1 !important; }}
-    /* 修正ボタンは少し控えめに */
-    .stButton > button[key*="undo"] {{
-        height: 40px !important; font-size: 14px !important; background: #f0f2f6 !important; color: #666 !important; box-shadow: none !important;
-    }}
+    .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #4FC3F7 0%, #81D4FA 100%) !important; color: white !important; }}
+    .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #26C6DA 0%, #80DEEA 100%) !important; color: white !important; }}
     </style>
     """, unsafe_allow_html=True)
 
 # --- 4. 記憶の魔法 ---
-# データの一貫性を保つためIDを固定
-s_z = st_javascript("localStorage.getItem('cpa_v40_z');")
-s_k = st_javascript("localStorage.getItem('cpa_v40_k');")
-s_m = st_javascript("localStorage.getItem('cpa_v40_money');")
+s_z = st_javascript("localStorage.getItem('cpa_v42_z');")
+s_k = st_javascript("localStorage.getItem('cpa_v42_k');")
+s_m = st_javascript("localStorage.getItem('cpa_v42_money');")
 
 if 'z' not in st.session_state:
     st.session_state.z = int(s_z) if s_z and s_z != "null" else 39
@@ -87,24 +96,22 @@ if 'z' not in st.session_state:
     st.session_state.money = int(s_m) if s_m and s_m != "null" else 0
 
 def save_data():
-    st_javascript(f"localStorage.setItem('cpa_v40_z', '{st.session_state.z}');")
-    st_javascript(f"localStorage.setItem('cpa_v40_k', '{st.session_state.k}');")
-    st_javascript(f"localStorage.setItem('cpa_v40_money', '{st.session_state.money}');")
+    st_javascript(f"localStorage.setItem('cpa_v42_z', '{st.session_state.z}');")
+    st_javascript(f"localStorage.setItem('cpa_v42_k', '{st.session_state.k}');")
+    st_javascript(f"localStorage.setItem('cpa_v42_money', '{st.session_state.money}');")
 
-# --- 📣 モチベお迎えメッセージ ---
+# --- 📣 メッセージ決定 ---
 welcome_messages = [
     "「今日」という日は、残りの人生の最初の一歩。さあ、最高のスタートを切ろうぜ！🔥",
     "君が今日流す汗は、合格発表の日の笑顔に変わる。約束するよ。💎",
     "周りが休んでいる今、君が動けば差は開く。今の1コマが未来の君を救うんだ。🐾",
-    "夢を語る人は多い。でも実行する人は一握り。君はその一握りなんだ！🌊"
+    "「無理」を決めるのはいつも自分だ。今日の君なら、その壁を壊せるはず。🧸✨",
+    "会計士試験は自分との戦い。場に立っているだけで君はもうかっこいい！🐬"
 ]
 
-if 'first_visit' not in st.session_state:
-    st.toast(random.choice(welcome_messages), icon="🧸")
-    st.session_state.first_visit = True
-    time.sleep(2.0) # お出迎えメッセージをしっかり見せるためのタメ！
+if 'daily_msg' not in st.session_state:
+    st.session_state.daily_msg = random.choice(welcome_messages)
 
-# 激褒め長文
 long_praises = [
     "信じられないくらい凄い！今の1コマで合格にグッと近づいたよ。君の集中力は本当に異次元だね！🧸✨",
     "見てたよ！今の論点をやり遂げた君は最高にかっこいい！公認会計士への道がハッキリ見えたね！💎",
@@ -112,9 +119,13 @@ long_praises = [
 ]
 
 # --- 5. メイン表示 ---
+
+# 🌟 画面の一番上にメッセージを表示！
+st.markdown(f'<div class="top-message">🧸 {st.session_state.daily_msg}</div>', unsafe_allow_html=True)
+
+# ヘッダー
 goal_date = date(2026, 5, 31) 
 days_left = (goal_date - date.today()).days
-
 st.markdown(f'<div class="rainbow-header"><div class="main-title">💎 クマ勉ログ 💎</div><div style="color:#0288D1; font-weight:bold;">完走まで あと {max(0, days_left)} 日</div></div>', unsafe_allow_html=True)
 
 top_col1, top_col2 = st.columns([1, 1.5])
@@ -136,7 +147,6 @@ with top_col2:
 st.write("---")
 mid_col1, mid_col2 = st.columns(2, gap="small")
 
-# --- アクション用関数 ---
 def handle_click(subject, plus=True):
     if plus:
         if subject == "z": st.session_state.z += 1
@@ -150,10 +160,9 @@ def handle_click(subject, plus=True):
         save_data()
         time.sleep(2.5)
     else:
-        # 修正（戻る）のとき
         if subject == "z": st.session_state.z -= 1
         else: st.session_state.k -= 1
-        st.session_state.money -= 100 # ここで貯金もマイナス100！
+        st.session_state.money -= 100
         save_data()
     st.rerun()
 
