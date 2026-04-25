@@ -18,7 +18,7 @@ def get_image_base64(path):
 
 back_b64 = get_image_base64("back.png")
 
-# --- 3. 💖 デザイン設定 ---
+# --- 3. 💖 デザイン設定 (くっきり設定込み) 💖 ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -26,6 +26,12 @@ st.markdown(f"""
         background-size: cover;
         background-attachment: fixed;
     }}
+    
+    /* タイマー実行中も画面を薄くしない魔法 */
+    [data-testid="stAppViewBlockContainer"] {{ opacity: 1 !important; }}
+    div[data-testid="stVerticalBlock"] > div {{ opacity: 1 !important; }}
+    [data-testid="stStatusWidget"] {{ visibility: hidden; }}
+
     .rainbow-header {{
         background: rgba(230, 247, 255, 0.9);
         border-radius: 20px;
@@ -55,7 +61,6 @@ st.markdown(f"""
         font-weight: bold !important; border-radius: 30px !important; 
         transition: 0.3s; border: 3px solid #FFFFFF !important;
     }}
-    /* タイマーボタン専用（ソーダ色） */
     .stButton > button[key="timer_btn"] {{
         background: linear-gradient(135deg, #00B0FF 0%, #00E5FF 100%) !important;
         color: white !important;
@@ -67,10 +72,10 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 記憶の魔法 (IDを固定して確実に保存) ---
-s_z = st_javascript("localStorage.getItem('cpa_v30_z');")
-s_k = st_javascript("localStorage.getItem('cpa_v30_k');")
-s_m = st_javascript("localStorage.getItem('cpa_v30_money');")
+# --- 4. 記憶の魔法 ---
+s_z = st_javascript("localStorage.getItem('cpa_v32_z');")
+s_k = st_javascript("localStorage.getItem('cpa_v32_k');")
+s_m = st_javascript("localStorage.getItem('cpa_v32_money');")
 
 if 'z' not in st.session_state:
     st.session_state.z = int(s_z) if s_z and s_z != "null" else 39
@@ -78,9 +83,9 @@ if 'z' not in st.session_state:
     st.session_state.money = int(s_m) if s_m and s_m != "null" else 0
 
 def save_data():
-    st_javascript(f"localStorage.setItem('cpa_v30_z', '{st.session_state.z}');")
-    st_javascript(f"localStorage.setItem('cpa_v30_k', '{st.session_state.k}');")
-    st_javascript(f"localStorage.setItem('cpa_v30_money', '{st.session_state.money}');")
+    st_javascript(f"localStorage.setItem('cpa_v32_z', '{st.session_state.z}');")
+    st_javascript(f"localStorage.setItem('cpa_v32_k', '{st.session_state.k}');")
+    st_javascript(f"localStorage.setItem('cpa_v32_money', '{st.session_state.money}');")
 
 # --- 5. メイン表示 ---
 goal_date = date(2026, 5, 31) 
@@ -109,15 +114,26 @@ with top_col2:
     with c1:
         st.link_button("🌸 講義ページ", "https://tlp.edulio.com/cpa/mypage/chapter/")
     with c2:
-        if st.button("⏲️ 1分集中", key="timer_btn"):
-            placeholder = st.empty()
-            for i in range(60, -1, -1):
-                placeholder.markdown(f"### ⏳ 残り {i} 秒")
-                time.sleep(1)
-            st.balloons()
+        # 📣 応援メッセージをここに復活！
+        if st.button("💌 クマ応援", key="msg_btn"):
+            msgs = [
+                "水色パワーで集中！🧊", "1コマ進めてご褒美貯めちゃお！💰", 
+                "君の努力は裏切らないよ！🐾", "深呼吸して、さあスタート！🌊",
+                "今日も一歩、合格に近づいたね！💎"
+            ]
+            st.toast(random.choice(msgs))
     with c3:
         if st.button("空に!", key="reset_m"):
             st.session_state.money = 0; save_data(); st.rerun()
+            
+    # ⏲️ タイマーボタンを単独で配置（使いやすく！）
+    if st.button("⏲️ 1分集中スタート！", key="timer_btn"):
+        placeholder = st.empty()
+        for i in range(60, -1, -1):
+            placeholder.markdown(f"<h3 style='color:#00B0FF; text-align:center;'>⏳ 残り {i} 秒</h3>", unsafe_allow_html=True)
+            time.sleep(1)
+        placeholder.markdown("<h3 style='color:#FF66CC; text-align:center;'>🎉 1分完了！天才！</h3>", unsafe_allow_html=True)
+        st.balloons()
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.write("---")
@@ -129,12 +145,10 @@ with mid_col1:
     st.subheader("📘 財務会計")
     st.metric("完了", f"{st.session_state.z} / 70")
     st.progress(st.session_state.z / 70)
-    if st.button("💎 財務完了！(+100円)", key="z_btn"):
+    if st.button("💎 財務ポチッ！(+100円)", key="z_btn"):
         st.session_state.z += 1
         st.session_state.money += 100
-        save_data()
-        st.balloons()
-        st.rerun()
+        save_data(); st.balloons(); st.rerun()
     if st.button("修正: 財務-1", key="z_undo"):
         st.session_state.z -= 1; save_data(); st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -144,12 +158,10 @@ with mid_col2:
     st.subheader("📙 管理会計")
     st.metric("完了", f"{st.session_state.k} / 33")
     st.progress(st.session_state.k / 33)
-    if st.button("❄️ 管理完了！(+100円)", key="k_btn"):
+    if st.button("❄️ 管理ポチッ！(+100円)", key="k_btn"):
         st.session_state.k += 1
         st.session_state.money += 100
-        save_data()
-        st.balloons()
-        st.rerun()
+        save_data(); st.balloons(); st.rerun()
     if st.button("修正: 管理-1", key="k_undo"):
         st.session_state.k -= 1; save_data(); st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
