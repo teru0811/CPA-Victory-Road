@@ -1,163 +1,83 @@
 import streamlit as st
+import pandas as pd
+from streamlit_gsheets import GSheetsConnection
 import time
 import random
 import base64
 from datetime import date
-from streamlit_gsheets import GSheetsConnection
-import pandas as pd
 
 # --- 1. ページ設定 ---
-st.set_page_config(page_title="クマ勉ログ 🎀", page_icon="🧸", layout="wide")
+st.set_page_config(page_title="クマ勉システム 🧸", page_icon="🧸", layout="wide")
 
-# --- 2. 画像読み込み ---
+# --- 2. データベース接続 (Google SheetsをDBとして使用) ---
+# ※Secretsに spreadsheet URL が入っている前提です
+conn = st.connection("gsheets", type=GSheetsConnection)
+
+def get_db_data():
+    # キャッシュを無視して、今現在の「真実のデータ」をスプレッドシートから直接取ってくる
+    df = conn.read(ttl="0s")
+    data = df.set_index('item')['value'].to_dict()
+    return int(data.get('z', 0)), int(data.get('k', 0)), int(data.get('money', 0))
+
+def update_db_data(z, k, m):
+    # スプレッドシートを「確定」データで上書きする
+    df = pd.DataFrame({"item": ["z", "k", "money"], "value": [z, k, m]})
+    conn.update(data=df)
+
+# --- 3. システム起動 ---
+# 起動した瞬間に、ブラウザの記憶ではなく、サーバー（シート）の値を正とする
+current_z, current_k, current_m = get_db_data()
+
+# --- 4. デザイン設定 ---
 def get_image_base64(path):
     try:
-        with open(path, "rb") as f:
-            return base64.b64encode(f.read()).decode()
-    except:
-        return ""
+        with open(path, "rb") as f: return base64.b64encode(f.read()).decode()
+    except: return ""
 
 back_b64 = get_image_base64("back.png")
-
-# --- 3. 💖 デザイン設定 (視認性重視) ---
 st.markdown(f"""
     <style>
-    .stApp {{
-        background-image: url("data:image/png;base64,{back_b64}");
-        background-size: cover;
-        background-attachment: fixed;
-    }}
-    .top-message {{
-        text-align: center; padding: 15px; font-size: 18px; font-weight: 800;
-        color: #0071BC; background: rgba(255, 255, 255, 0.95);
-        border-bottom: 3px solid #80D8FF; margin: -10px -10px 20px -10px;
-    }}
-    .rainbow-header {{
-        background: white; border-radius: 20px;
-        border: 4px solid #80D8FF; padding: 15px; text-align: center; margin-bottom: 20px;
-    }}
-    .money-card, .pop-card {{
-        background: white !important; border-radius: 20px; padding: 20px; 
-        border: 2px solid #B3E5FC; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }}
-    .stButton > button {{
-        width: 100% !important; height: 60px !important; font-size: 18px !important;
-        font-weight: bold !important; border-radius: 30px !important; 
-    }}
-    .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #4FC3F7 0%, #81D4FA 100%) !important; color: white !important; }}
-    .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #26C6DA 0%, #80DEEA 100%) !important; color: white !important; }}
+    .stApp {{ background-image: url("data:image/png;base64,{back_b64}"); background-size: cover; background-attachment: fixed; }}
+    .status-card {{ background: white; border-radius: 15px; padding: 20px; border: 3px solid #80D8FF; text-align: center; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }}
+    .stButton > button {{ width: 100%; height: 70px; font-size: 20px !important; font-weight: bold; border-radius: 35px; }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 🔗 Google Sheets 連携機能 (超安定版) 🔗 ---
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1ugZnhJobvF7SuuUEwEJDg73486USQN3ENoJgtOj4I98/edit?usp=sharing"
+# --- 5. メイン画面 ---
+st.markdown(f'<h2 style="text-align:center; color:#0071BC; background:rgba(255,255,255,0.8); border-radius:10px;">🧸 クマ勉・進捗同期システム 💎</h2>', unsafe_allow_html=True)
 
-conn = st.connection("gsheets", type=GSheetsConnection)
-
-def load_data():
-    try:
-        # スプレッドシートからデータを読み込む
-        df = conn.read(spreadsheet=SHEET_URL, ttl="0s")
-        data = df.set_index('item')['value'].to_dict()
-        return int(data.get('z', 39)), int(data.get('k', 15)), int(data.get('money', 0))
-    except:
-        # 読み込み失敗時はURLパラメータか初期値を返す
-        params = st.query_params
-        return int(params.get("z", 39)), int(params.get("k", 15)), int(params.get("m", 0))
-
-def save_data(z, k, m):
-    try:
-        # スプレッドシートを更新
-        df = pd.DataFrame({"item": ["z", "k", "money"], "value": [z, k, m]})
-        conn.update(spreadsheet=SHEET_URL, data=df)
-    except Exception as e:
-        # 書き込みエラー時はトーストで通知し、URLにバックアップ
-        st.toast(f"シート保存エラー(共有設定を確認してね！)", icon="⚠️")
-    
-    # バックアップとしてURLも更新
-    st.query_params.update(z=z, k=k, m=m)
-
-# 初回データ読み込み
-if 'z' not in st.session_state:
-    z_val, k_val, m_val = load_data()
-    st.session_state.z = z_val
-    st.session_state.k = k_val
-    st.session_state.money = m_val
-
-# --- 📣 メッセージ・褒め言葉 ---
-if 'daily_msg' not in st.session_state:
-    st.session_state.daily_msg = random.choice([
-        "「今日」という日は、残りの人生の最初の一歩。さあ、始めよう！🔥",
-        "君が今日流す汗は、合格発表の日の笑顔に変わる。約束するよ。💎",
-        "周りが休んでいる今、君が動けば差は開く。今の1コマが未来を創る。🐾"
-    ])
-
-praises = {
-    "z": ["財務会計の神！合格への資産がまた積み上がったね！💎", "複雑な仕訳をこなす君の集中力、本当に尊敬しちゃうよ！🧸✨"],
-    "k": ["管理会計の天才！意思決定のスピード、最高だね！❄️", "君の分析力はもうプロ級。合格がハッキリ見えてきたよ！💰"]
-}
-
-# --- 5. メイン表示 ---
-st.markdown(f'<div class="top-message">🧸 {st.session_state.daily_msg}</div>', unsafe_allow_html=True)
-
-goal_date = date(2026, 5, 31) 
-days_left = (goal_date - date.today()).days
-st.markdown(f'''
-    <div class="rainbow-header">
-        <h2 style="margin:0; color:#0091EA;">💎 クマ勉ログ 💎</h2>
-        <p style="margin:0; font-weight:bold; color:#666;">目標完走まで あと {max(0, days_left)} 日</p>
-    </div>
-    ''', unsafe_allow_html=True)
-
-col_a, col_b = st.columns([1, 1.5])
-with col_a:
-    st.image("bear.png", use_container_width=True)
-with col_b:
-    st.markdown('<div class="money-card">', unsafe_allow_html=True)
-    st.image("money_bag.png", width=120) 
-    st.markdown(f"<h1 style='color:#FFB300; margin:0;'>¥ {st.session_state.money:,}</h1>", unsafe_allow_html=True)
-    st.link_button("🌸 講義ページを開く", "https://tlp.edulio.com/cpa/mypage/chapter/")
-    if st.button("⏲️ 1分集中開始", key="timer_btn"):
-        p = st.empty()
-        for i in range(60, -1, -1):
-            p.markdown(f"<h3 style='color:#00B0FF; text-align:center;'>⏳ 残り {i} 秒</h3>", unsafe_allow_html=True)
-            time.sleep(1)
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.markdown('<div class="status-card">', unsafe_allow_html=True)
+    st.metric("📘 財務会計", f"{current_z} / 70")
+    if st.button("💎 財務完了！", key="z_btn"):
+        new_z = current_z + 1
+        new_m = current_m + 100
+        update_db_data(new_z, current_k, new_m)
         st.balloons()
+        st.success("サーバーと同期しました！")
+        time.sleep(1)
+        st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-st.write("---")
-
-def handle_click(subj, plus=True):
-    if plus:
-        if subj == "z": st.session_state.z += 1
-        else: st.session_state.k += 1
-        st.session_state.money += 100
-        st.snow(); st.balloons()
-        st.toast(random.choice(praises[subj]), icon="🧸")
-    else:
-        if subj == "z": st.session_state.z -= 1
-        else: st.session_state.k -= 1
-        st.session_state.money -= 100
-    
-    save_data(st.session_state.z, st.session_state.k, st.session_state.money)
-    time.sleep(0.5)
-    st.rerun()
-
-col_1, col_2 = st.columns(2)
-with col_1:
-    st.markdown('<div class="pop-card">', unsafe_allow_html=True)
-    st.subheader("📘 財務会計")
-    st.metric("完了", f"{st.session_state.z} / 70")
-    st.progress(min(st.session_state.z / 70, 1.0))
-    if st.button("💎 財務ポチッ！", key="z_btn"): handle_click("z", True)
-    if st.button("修正: 財-1 & ¥-100", key="z_undo"): handle_click("z", False)
+with col2:
+    st.markdown('<div class="status-card">', unsafe_allow_html=True)
+    st.metric("📙 管理会計", f"{current_k} / 33")
+    if st.button("❄️ 管理完了！", key="k_btn"):
+        new_k = current_k + 1
+        new_m = current_m + 100
+        update_db_data(current_z, new_k, new_m)
+        st.snow()
+        st.success("サーバーと同期しました！")
+        time.sleep(1)
+        st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
 
-with col_2:
-    st.markdown('<div class="pop-card">', unsafe_allow_html=True)
-    st.subheader("📙 管理会計")
-    st.metric("完了", f"{st.session_state.k} / 33")
-    st.progress(min(st.session_state.k / 33, 1.0))
-    if st.button("❄️ 管理ポチッ！", key="k_btn"): handle_click("k", True)
-    if st.button("修正: 管-1 & ¥-100", key="k_undo"): handle_click("k", False)
+with col3:
+    st.markdown('<div class="status-card">', unsafe_allow_html=True)
+    st.image("money_bag.png", width=80)
+    st.metric("💰 貯金箱", f"¥ {current_m:,}")
+    st.markdown("合格への投資が積み上がってるよ！")
     st.markdown('</div>', unsafe_allow_html=True)
+
+st.info("※このシステムはポチった瞬間にGoogleスプレッドシートを直接書き換えます。リロードしても、別端末から開いてもデータは常に最新です。")
