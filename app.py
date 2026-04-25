@@ -3,7 +3,7 @@ import time
 import random
 import base64
 from datetime import date
-from streamlit_javascript import st_javascript
+from streamlit_gsheets import GSheetsConnection
 
 # --- 1. ページ設定 ---
 st.set_page_config(page_title="クマ勉ログ 🎀", page_icon="🧸", layout="wide")
@@ -18,7 +18,7 @@ def get_image_base64(path):
 
 back_b64 = get_image_base64("back.png")
 
-# --- 3. 💖 デザイン ---
+# --- 3. デザイン設定 ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -48,56 +48,55 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 💎 データの絶対防衛（新・金庫システム） 💎 ---
-# キーを完全にリフレッシュします
-DB_KEYS = {'z': 'CPA_MASTER_Z', 'k': 'CPA_MASTER_K', 'm': 'CPA_MASTER_M'}
+# --- 4. 🔗 Google Sheets 連携 🔗 ---
+# スプレッドシートのURLを指定
+SHEET_URL = "https://docs.google.com/spreadsheets/d/1ugZnhJobvF7SuuUEwEJDg73486USQN3ENoJgtOj4I98/edit?usp=sharing"
 
-# データの読み込み
-val_z = st_javascript(f"localStorage.getItem('{DB_KEYS['z']}');")
-val_k = st_javascript(f"localStorage.getItem('{DB_KEYS['k']}');")
-val_m = st_javascript(f"localStorage.getItem('{DB_KEYS['m']}');")
+conn = st.connection("gsheets", type=GSheetsConnection)
 
-# 🔴 読み込み待ち：データが「未確定」の間は、絶対に初期値を代入させない
-if val_z is None:
-    st.markdown("<h2 style='text-align:center; color:white; margin-top:100px;'>🧸 クマが金庫を確認中...</h2>", unsafe_allow_html=True)
-    st.stop()
+def load_data():
+    df = conn.read(spreadsheet=SHEET_URL, ttl="0s")
+    # item列をインデックスにして辞書化
+    data = df.set_index('item')['value'].to_dict()
+    return int(data.get('z', 39)), int(data.get('k', 15)), int(data.get('money', 0))
 
-# 読み込みが完了してからセッションに格納
-if 'init_done' not in st.session_state:
-    st.session_state.z = int(val_z) if val_z and val_z != "null" else 39
-    st.session_state.k = int(val_k) if val_k and val_k != "null" else 15
-    st.session_state.money = int(val_m) if val_m and val_m != "null" else 0
-    st.session_state.init_done = True
+def save_data(z, k, money):
+    import pandas as pd
+    new_df = pd.DataFrame({
+        "item": ["z", "k", "money"],
+        "value": [z, k, money]
+    })
+    conn.update(spreadsheet=SHEET_URL, data=new_df)
 
-def sync_db():
-    st_javascript(f"localStorage.setItem('{DB_KEYS['z']}', '{st.session_state.z}');")
-    st_javascript(f"localStorage.setItem('{DB_KEYS['k']}', '{st.session_state.k}');")
-    st_javascript(f"localStorage.setItem('{DB_KEYS['m']}', '{st.session_state.money}');")
+# 初回読み込み
+if 'z' not in st.session_state:
+    z, k, m = load_data()
+    st.session_state.z = z
+    st.session_state.k = k
+    st.session_state.money = m
 
 # --- 📣 メッセージ設定 ---
 if 'daily_msg' not in st.session_state:
     st.session_state.daily_msg = random.choice([
+        "今日の一歩が、合格発表の日の自分を救う。🔥",
         "未来の自分に、最高のプレゼントを贈ろう。💎",
-        "君が今日流す汗は、合格発表の日の笑顔に変わる。約束するよ。🔥",
-        "小さな一歩が、一番遠い場所へ連れて行ってくれる。🐾"
+        "君ならできる。クマちゃんは信じてるよ。🐾"
     ])
 
-# 褒め言葉（熱烈）
 praises = {
-    "z": ["財務会計の神！複雑な仕訳をさらっとこなす君、かっこよすぎる！💎", "仕訳の積み重ねは合格への資産！資産価値が爆上がりだね！📈"],
-    "k": ["管理会計の天才！コストと時間を支配する君はもうプロの会計士！❄️", "意思決定のスピード、最高だね！今日の君は無敵だよ！💰"]
+    "z": ["財務会計の神！合格への資産が積み上がったね！💎", "仕訳の積み重ねは最強の武器！📈"],
+    "k": ["管理会計の天才！意思決定のスピード、最高だね！❄️", "君の分析力はもうプロ級だよ！💰"]
 }
 
 # --- 5. メイン表示 ---
 st.markdown(f'<div class="top-message">🧸 {st.session_state.daily_msg}</div>', unsafe_allow_html=True)
 
-# 完走日数
 goal_date = date(2026, 5, 31) 
 days_left = (goal_date - date.today()).days
 st.markdown(f'''
     <div class="rainbow-header">
         <h2 style="margin:0; color:#0091EA;">💎 クマ勉ログ 💎</h2>
-        <p style="margin:0; font-weight:bold; color:#666;">完走まで あと {max(0, days_left)} 日</p>
+        <p style="margin:0; font-weight:bold; color:#666;">目標完走まで あと {max(0, days_left)} 日</p>
     </div>
     ''', unsafe_allow_html=True)
 
@@ -130,7 +129,9 @@ def handle_click(subj, plus=True):
         if subj == "z": st.session_state.z -= 1
         else: st.session_state.k -= 1
         st.session_state.money -= 100
-    sync_db()
+    
+    # 💾 スプレッドシートに保存
+    save_data(st.session_state.z, st.session_state.k, st.session_state.money)
     time.sleep(0.5)
     st.rerun()
 
