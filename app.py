@@ -1,14 +1,15 @@
-import streamlit as st
+ import streamlit as st
 import time
 import random
 import base64
 from datetime import date
 from streamlit_gsheets import GSheetsConnection
+import pandas as pd
 
 # --- 1. ページ設定 ---
 st.set_page_config(page_title="クマ勉ログ 🎀", page_icon="🧸", layout="wide")
 
-# --- 2. 画像読み込み ---
+# --- 2. デザイン ---
 def get_image_base64(path):
     try:
         with open(path, "rb") as f:
@@ -18,91 +19,51 @@ def get_image_base64(path):
 
 back_b64 = get_image_base64("back.png")
 
-# --- 3. デザイン設定 ---
 st.markdown(f"""
     <style>
-    .stApp {{
-        background-image: url("data:image/png;base64,{back_b64}");
-        background-size: cover;
-        background-attachment: fixed;
-    }}
-    .top-message {{
-        text-align: center; padding: 15px; font-size: 18px; font-weight: 800;
-        color: #0071BC; background: rgba(255, 255, 255, 0.95);
-        border-bottom: 3px solid #80D8FF; margin: -10px -10px 20px -10px;
-    }}
-    .rainbow-header {{
-        background: white; border-radius: 20px;
-        border: 4px solid #80D8FF; padding: 15px; text-align: center; margin-bottom: 20px;
-    }}
-    .money-card, .pop-card {{
-        background: white !important; border-radius: 20px; padding: 20px; 
-        border: 2px solid #B3E5FC; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-    }}
-    .stButton > button {{
-        width: 100% !important; height: 60px !important; font-size: 18px !important;
-        font-weight: bold !important; border-radius: 30px !important; 
-    }}
+    .stApp {{ background-image: url("data:image/png;base64,{back_b64}"); background-size: cover; background-attachment: fixed; }}
+    .top-message {{ text-align: center; padding: 15px; font-size: 18px; font-weight: 800; color: #0071BC; background: rgba(255, 255, 255, 0.95); border-bottom: 3px solid #80D8FF; margin: -10px -10px 20px -10px; }}
+    .rainbow-header {{ background: white; border-radius: 20px; border: 4px solid #80D8FF; padding: 15px; text-align: center; margin-bottom: 20px; }}
+    .money-card, .pop-card {{ background: white !important; border-radius: 20px; padding: 20px; border: 2px solid #B3E5FC; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }}
+    .stButton > button {{ width: 100% !important; height: 60px !important; font-size: 18px !important; font-weight: bold !important; border-radius: 30px !important; }}
     .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #4FC3F7 0%, #81D4FA 100%) !important; color: white !important; }}
     .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #26C6DA 0%, #80DEEA 100%) !important; color: white !important; }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 🔗 Google Sheets 連携 🔗 ---
-# スプレッドシートのURLを指定
-SHEET_URL = "https://docs.google.com/spreadsheets/d/1ugZnhJobvF7SuuUEwEJDg73486USQN3ENoJgtOj4I98/edit?usp=sharing"
-
+# --- 4. 🔗 GSheets 安定版接続 🔗 ---
 conn = st.connection("gsheets", type=GSheetsConnection)
 
 def load_data():
-    df = conn.read(spreadsheet=SHEET_URL, ttl="0s")
-    # item列をインデックスにして辞書化
+    df = conn.read(ttl="0s")
     data = df.set_index('item')['value'].to_dict()
     return int(data.get('z', 39)), int(data.get('k', 15)), int(data.get('money', 0))
 
-def save_data(z, k, money):
-    import pandas as pd
-    new_df = pd.DataFrame({
-        "item": ["z", "k", "money"],
-        "value": [z, k, money]
-    })
-    conn.update(spreadsheet=SHEET_URL, data=new_df)
+def save_data(z, k, m):
+    df = pd.DataFrame({"item": ["z", "k", "money"], "value": [z, k, m]})
+    # updateの代わりに、より汎用的な書き込みを使用
+    conn.update(data=df)
 
 # 初回読み込み
 if 'z' not in st.session_state:
-    z, k, m = load_data()
-    st.session_state.z = z
-    st.session_state.k = k
-    st.session_state.money = m
-
-# --- 📣 メッセージ設定 ---
-if 'daily_msg' not in st.session_state:
-    st.session_state.daily_msg = random.choice([
-        "今日の一歩が、合格発表の日の自分を救う。🔥",
-        "未来の自分に、最高のプレゼントを贈ろう。💎",
-        "君ならできる。クマちゃんは信じてるよ。🐾"
-    ])
-
-praises = {
-    "z": ["財務会計の神！合格への資産が積み上がったね！💎", "仕訳の積み重ねは最強の武器！📈"],
-    "k": ["管理会計の天才！意思決定のスピード、最高だね！❄️", "君の分析力はもうプロ級だよ！💰"]
-}
+    try:
+        z, k, m = load_data()
+        st.session_state.z, st.session_state.k, st.session_state.money = z, k, m
+    except:
+        st.session_state.z, st.session_state.k, st.session_state.money = 39, 15, 0
 
 # --- 5. メイン表示 ---
+if 'daily_msg' not in st.session_state:
+    st.session_state.daily_msg = random.choice(["今日の一歩が、合格発表の日の自分を救う。🔥", "未来の自分に、最高のプレゼントを贈ろう。💎"])
+
 st.markdown(f'<div class="top-message">🧸 {st.session_state.daily_msg}</div>', unsafe_allow_html=True)
 
 goal_date = date(2026, 5, 31) 
 days_left = (goal_date - date.today()).days
-st.markdown(f'''
-    <div class="rainbow-header">
-        <h2 style="margin:0; color:#0091EA;">💎 クマ勉ログ 💎</h2>
-        <p style="margin:0; font-weight:bold; color:#666;">目標完走まで あと {max(0, days_left)} 日</p>
-    </div>
-    ''', unsafe_allow_html=True)
+st.markdown(f'<div class="rainbow-header"><h2 style="margin:0; color:#0091EA;">💎 クマ勉ログ 💎</h2><p style="margin:0; font-weight:bold; color:#666;">目標完走まで あと {max(0, days_left)} 日</p></div>', unsafe_allow_html=True)
 
 col_a, col_b = st.columns([1, 1.5])
-with col_a:
-    st.image("bear.png", use_container_width=True)
+with col_a: st.image("bear.png", use_container_width=True)
 with col_b:
     st.markdown('<div class="money-card">', unsafe_allow_html=True)
     st.image("money_bag.png", width=120) 
@@ -124,13 +85,12 @@ def handle_click(subj, plus=True):
         else: st.session_state.k += 1
         st.session_state.money += 100
         st.snow(); st.balloons()
-        st.toast(random.choice(praises[subj]), icon="🧸")
+        st.toast("その調子！合格へ一歩前進だね！🧸✨")
     else:
         if subj == "z": st.session_state.z -= 1
         else: st.session_state.k -= 1
         st.session_state.money -= 100
     
-    # 💾 スプレッドシートに保存
     save_data(st.session_state.z, st.session_state.k, st.session_state.money)
     time.sleep(0.5)
     st.rerun()
