@@ -5,8 +5,8 @@ import base64
 from datetime import date
 from streamlit_javascript import st_javascript
 
-# --- 1. ページ設定 ---
-st.set_page_config(page_title="クマ勉ログ 🎀", page_icon="🧸")
+# --- 1. ページ設定（layout="wide" で横長モードに！） ---
+st.set_page_config(page_title="クマ勉ログ 🎀", page_icon="🧸", layout="wide")
 
 # --- 2. 画像読み込み ---
 def get_image_base64(path):
@@ -18,161 +18,132 @@ def get_image_base64(path):
 
 back_b64 = get_image_base64("back.png")
 
-# --- 3. 💖 カラフル・ポップ・デザイン (CSS) 💖 ---
+# --- 3. 💖 横長スッキリ・デザイン (CSS) 💖 ---
 st.markdown(f"""
     <style>
-    /* 全体の背景 */
     .stApp {{
         background-image: url("data:image/png;base64,{back_b64}");
         background-size: cover;
         background-attachment: fixed;
     }}
 
-    /* タイトルボックス（虹色グラデの枠！） */
+    /* ヘッダーを少しコンパクトに */
     .rainbow-header {{
-        background: rgba(255, 255, 255, 0.8);
-        border-radius: 30px;
-        border: 5px solid;
-        border-image: linear-gradient(to right, #ff99ff, #99ffff) 1; /* 虹色のフチ */
-        padding: 20px;
+        background: rgba(255, 255, 255, 0.85);
+        border-radius: 20px;
+        border: 4px solid;
+        border-image: linear-gradient(to right, #ff99ff, #99ffff) 1;
+        padding: 10px;
         text-align: center;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
     }}
-    .main-title {{
-        color: #FF66CC;
-        font-size: 32px;
-        font-weight: 900;
-        text-shadow: 2px 2px 0px #FFFFFF;
-        margin-bottom: 5px;
-    }}
-    .days-text {{
-        color: #6666FF;
-        font-size: 18px;
-        font-weight: bold;
-    }}
+    .main-title {{ color: #FF66CC; font-size: 28px; font-weight: 900; margin: 0; }}
 
-    /* 応援・タイマーのカード */
+    /* カードを横に並べた時に綺麗に見える設定 */
     .pop-card {{
-        background: rgba(255, 255, 255, 0.8);
+        background: rgba(255, 255, 255, 0.85);
         border-radius: 20px;
         padding: 15px;
-        margin: 10px 0;
         border: 2px solid #FFCCFF;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+        min-height: 250px;
     }}
 
-    /* 財務ボタン（キャンディピンク） */
+    /* ボタン（少し高さを抑えて横長に馴染ませる） */
+    .stButton > button {{
+        height: 60px !important;
+        font-size: 20px !important;
+        font-weight: bold !important;
+        border-radius: 30px !important;
+        border: 3px solid #FFFFFF !important;
+    }}
+    
     .stButton > button[key="z_btn"] {{
         background: linear-gradient(135deg, #FF66CC 0%, #FF99CC 100%) !important;
-        color: white !important;
-        border-radius: 30px !important;
-        height: 80px !important;
-        font-size: 24px !important;
-        font-weight: bold !important;
-        border: 4px solid #FFFFFF !important;
-        box-shadow: 0 8px 0px #CC3399 !important; /* 飛び出すような立体感 */
+        box-shadow: 0 5px 0px #CC3399 !important;
     }}
-    
-    /* 管理ボタン（ソーダブルー） */
     .stButton > button[key="k_btn"] {{
         background: linear-gradient(135deg, #33CCFF 0%, #99EEFF 100%) !important;
-        color: white !important;
-        border-radius: 30px !important;
-        height: 80px !important;
-        font-size: 24px !important;
-        font-weight: bold !important;
-        border: 4px solid #FFFFFF !important;
-        box-shadow: 0 8px 0px #0099CC !important;
+        box-shadow: 0 5px 0px #0099CC !important;
     }}
 
-    /* タブの色 */
-    .stTabs [data-baseweb="tab"] {{
-        color: #999 !important;
-        font-size: 18px !important;
-        font-weight: bold !important;
-    }}
-    .stTabs [aria-selected="true"] {{
-        color: #FF66CC !important;
-        border-bottom: 4px solid #FF66CC !important;
-    }}
-    
-    /* 進捗の数字 */
     [data-testid="stMetricValue"] {{
         color: #FF1493 !important;
-        font-size: 40px !important;
-        font-weight: 900 !important;
+        font-size: 35px !important;
     }}
     </style>
     """, unsafe_allow_html=True)
 
 # --- 4. 記憶の魔法 ---
-s_z = st_javascript("localStorage.getItem('cpa_v18_z');")
-s_k = st_javascript("localStorage.getItem('cpa_v18_k');")
+s_z = st_javascript("localStorage.getItem('cpa_v19_z');")
+s_k = st_javascript("localStorage.getItem('cpa_v19_k');")
 
 if 'z' not in st.session_state:
     st.session_state.z = int(s_z) if s_z and s_z != "null" else 39
     st.session_state.k = int(s_k) if s_k and s_k != "null" else 15
 
 def save():
-    st_javascript(f"localStorage.setItem('cpa_v18_z', '{st.session_state.z}');")
-    st_javascript(f"localStorage.setItem('cpa_v18_k', '{st.session_state.k}');")
+    st_javascript(f"localStorage.setItem('cpa_v19_z', '{st.session_state.z}');")
+    st_javascript(f"localStorage.setItem('cpa_v19_k', '{st.session_state.k}');")
 
 # --- 5. メイン表示 ---
 
-# ヘッダー
+# ヘッダー（カウントダウンとタイトルを1行に凝縮）
 days_left = (date(2026, 5, 31) - date.today()).days
 st.markdown(f"""
     <div class="rainbow-header">
-        <p class="main-title">✨ クマ勉ログ ✨</p>
-        <p class="days-text">試験まで あと <b>{max(0, days_left)}</b> 日！</p>
+        <span class="main-title">✨ クマ勉ログ ✨</span>
+        <span style="color:#6666FF; font-weight:bold; margin-left:20px;">
+            試験まであと <b>{max(0, days_left)}</b> 日！
+        </span>
     </div>
     """, unsafe_allow_html=True)
 
-# 応援＆リンクを横並びでポップに
-c1, c2 = st.columns(2)
-with c1:
-    if st.button("💌 クマ応援！"):
-        msgs = ["君ならできる！💪", "休憩も大事だよ☕", "一歩ずついこう🐾", "天才すぎる！✨", "合格して遊びまくろ！🌈"]
-        st.toast(random.choice(msgs))
-with c2:
-    st.link_button("🌸 CPA講義へGO", "https://tlp.edulio.com/cpa/mypage/chapter/")
+# 上段：クマさんとお役立ちツールを横に並べる
+top_col1, top_col2, top_col3 = st.columns([1, 1, 1.5])
 
-# クマさん
-col1, col2, col3 = st.columns([1,4,1])
-with col2:
+with top_col1:
     st.image("bear.png", use_container_width=True)
 
-# 進捗エリア
-st.markdown('<div class="pop-card">', unsafe_allow_html=True)
-tab1, tab2 = st.tabs(["📘 財務会計", "📙 管理会計"])
+with top_col2:
+    st.markdown("##### 🧸 クマ応援＆リンク")
+    if st.button("💌 応援もらう！"):
+        st.toast(random.choice(["君ならできる！💪", "休憩も大事☕", "天才すぎる！✨"]))
+    st.link_button("🌸 CPA講義へGO", "https://tlp.edulio.com/cpa/mypage/chapter/")
 
-with tab1:
-    st.metric("完了したコマ数", f"{st.session_state.z} / 70")
-    st.progress(st.session_state.z / 70)
-    if st.button("✨ 財務ポチッ！", key="z_btn"):
-        st.session_state.z += 1; save(); st.balloons(); st.rerun()
-
-with tab2:
-    st.metric("完了したコマ数", f"{st.session_state.k} / 33")
-    st.progress(st.session_state.k / 33)
-    if st.button("🔥 管理ポチッ！", key="k_btn"):
-        st.session_state.k += 1; save(); st.balloons(); st.rerun()
-st.markdown('</div>', unsafe_allow_html=True)
-
-# お役立ちツール
-with st.expander("🛠️ タイマーとか修正とか"):
-    if st.button("⏲️ 1分集中タイマー"):
+with top_col3:
+    st.markdown("##### ⏱️ 集中タイマー")
+    if st.button("⏲️ 1分スタート！"):
         p = st.empty()
         for i in range(60, -1, -1):
-            p.markdown(f"### ⏳ あと {i} 秒...")
+            p.write(f"⏳ あと {i} 秒...")
             time.sleep(1)
-        st.success("お疲れ様！えらすぎる！🎉")
         st.balloons()
-    
-    st.write("---")
-    st.write("押し間違えた時はここから直してね！")
-    ca, cb = st.columns(2)
-    if ca.button("財務 -1回"):
+
+st.write("---")
+
+# 下段：財務と管理を【左右に並べる】
+mid_col1, mid_col2 = st.columns(2)
+
+with mid_col1:
+    st.markdown('<div class="pop-card">', unsafe_allow_html=True)
+    st.subheader("📘 財務会計")
+    st.metric("完了", f"{st.session_state.z} / 70")
+    st.progress(st.session_state.z / 70)
+    if st.button("✨ 財務完了ポチッ！", key="z_btn"):
+        st.session_state.z += 1; save(); st.balloons(); st.rerun()
+    if st.button("修正: 財務-1", key="uz"):
         st.session_state.z -= 1; save(); st.rerun()
-    if cb.button("管理 -1回"):
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with mid_col2:
+    st.markdown('<div class="pop-card">', unsafe_allow_html=True)
+    st.subheader("📙 管理会計")
+    st.metric("完了", f"{st.session_state.k} / 33")
+    st.progress(st.session_state.k / 33)
+    if st.button("🔥 管理完了ポチッ！", key="k_btn"):
+        st.session_state.k += 1; save(); st.balloons(); st.rerun()
+    if st.button("修正: 管理-1", key="uk"):
+        st.session_state.k -= 1; save(); st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True):
         st.session_state.k -= 1; save(); st.rerun()
