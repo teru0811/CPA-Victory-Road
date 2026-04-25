@@ -16,6 +16,7 @@ def get_image_base64(path):
     except:
         return ""
 
+# 新しい「勉強部屋」の背景画像を back.png として保存しておいてくださいね！
 back_b64 = get_image_base64("back.png")
 
 # --- 3. 💖 デザイン設定 ---
@@ -27,7 +28,7 @@ st.markdown(f"""
         background-attachment: fixed;
     }}
     .rainbow-header {{
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.9);
         border-radius: 20px;
         border: 4px solid #FFCCFF;
         padding: 15px;
@@ -35,19 +36,27 @@ st.markdown(f"""
         margin-bottom: 10px;
     }}
     .main-title {{ color: #FF66CC; font-size: 24px; font-weight: 900; }}
+    
+    /* 勉強部屋背景に合わせて、カードの透明度を調整して文字を見やすく */
     .pop-card {{
-        background: rgba(255, 255, 255, 0.9);
+        background: rgba(255, 255, 255, 0.92);
         border-radius: 20px;
         padding: 15px;
         border: 2px solid #FFCCFF;
         margin-bottom: 10px;
-        width: 100%;
-        box-sizing: border-box;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }}
+    
     .stButton > button {{
         width: 100% !important; height: 60px !important; font-size: 18px !important;
         font-weight: bold !important; border-radius: 30px !important; border: 3px solid #FFFFFF !important;
     }}
+    /* 特別の講義スタートボタン（キラキラ） */
+    .stButton > button[key="start_study"] {{
+        background: linear-gradient(135deg, #66BB6A 0%, #43A047 100%) !important;
+        box-shadow: 0 5px 0px #2E7D32 !important;
+    }}
+    
     .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #FF66CC 0%, #FF99CC 100%) !important; }}
     .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #33CCFF 0%, #99EEFF 100%) !important; }}
     [data-testid="stMetricValue"] {{ color: #FF1493 !important; font-size: 28px !important; }}
@@ -55,21 +64,19 @@ st.markdown(f"""
     """, unsafe_allow_html=True)
 
 # --- 4. 記憶の魔法 ---
-# 以前のデータと混ざらないようIDを更新
-s_z = st_javascript("localStorage.getItem('cpa_v23_z');")
-s_k = st_javascript("localStorage.getItem('cpa_v23_k');")
+s_z = st_javascript("localStorage.getItem('cpa_v24_z');")
+s_k = st_javascript("localStorage.getItem('cpa_v24_k');")
 
 if 'z' not in st.session_state:
     st.session_state.z = int(s_z) if s_z and s_z != "null" else 39
     st.session_state.k = int(s_k) if s_k and s_k != "null" else 15
 
 def save():
-    st_javascript(f"localStorage.setItem('cpa_v23_z', '{st.session_state.z}');")
-    st_javascript(f"localStorage.setItem('cpa_v23_k', '{st.session_state.k}');")
+    st_javascript(f"localStorage.setItem('cpa_v24_z', '{st.session_state.z}');")
+    st_javascript(f"localStorage.setItem('cpa_v24_k', '{st.session_state.k}');")
 
 # --- 5. メイン表示 ---
 
-# 目標日を 2026年5月31日に設定
 goal_date = date(2026, 5, 31) 
 days_left = (goal_date - date.today()).days
 
@@ -79,24 +86,37 @@ st.markdown(f'''
         <div style="color:#6666FF; font-weight:bold; font-size:18px; margin-top:5px;">
             🎉 全講義完走まで あと <span style="font-size:28px; color:#FF1493;">{max(0, days_left)}</span> 日！
         </div>
-        <div style="font-size:12px; color:#999;">（目標リミット: {goal_date.strftime('%Y年%m月%d日')}）</div>
     </div>
     ''', unsafe_allow_html=True)
 
-# クマさんとツール
+# --- 上段：ここが新しい「同時スタート」エリア ---
 top_col1, top_col2 = st.columns([1, 1.5])
+
 with top_col1:
     st.image("bear.png", use_container_width=True)
+
 with top_col2:
-    if st.button("💌 クマからの激励", key="msg_btn"):
-        st.toast(random.choice(["5月31日には笑ってようね！🌸", "今のポチッが未来を変える！🐾", "講義終わらせて最高の夏にしよう☕"]))
-    if st.button("⏲️ 1分タイマー", key="timer_btn"):
+    st.markdown('<div class="pop-card">', unsafe_allow_html=True)
+    st.write("📖 **講義をはじめる**")
+    
+    # 講義ページを開きつつタイマーを動かすボタン
+    if st.button("🚀 講義を開いて集中スタート！", key="start_study"):
+        # 別タブで講義ページを開くJavaScript
+        js = "window.open('https://tlp.edulio.com/cpa/mypage/chapter/')"
+        st_javascript(js)
+        
+        # そのままタイマー開始
+        st.write("---")
         p = st.empty()
         for i in range(60, -1, -1):
-            p.write(f"⏳ あと {i} 秒...")
+            p.markdown(f"### ⏳ 最初の1分集中！あと {i} 秒")
             time.sleep(1)
+        st.success("最初の1分クリア！その調子！")
         st.balloons()
-    st.link_button("🌸 CPA講義ページへGO", "https://tlp.edulio.com/cpa/mypage/chapter/")
+    
+    if st.button("💌 クマからの激励", key="msg_btn"):
+        st.toast(random.choice(["勉強部屋、いい感じ！🌸", "この1分が大きな一歩！🐾", "講義の海へいってらっしゃい！☕"]))
+    st.markdown('</div>', unsafe_allow_html=True)
 
 st.write("---")
 
