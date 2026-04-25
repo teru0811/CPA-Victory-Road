@@ -18,7 +18,7 @@ def get_image_base64(path):
 
 back_b64 = get_image_base64("back.png")
 
-# --- 3. 💖 視認性重視デザイン ---
+# --- 3. 💖 デザイン (視認性MAX) ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -28,7 +28,7 @@ st.markdown(f"""
     }}
     .top-message {{
         text-align: center; padding: 15px; font-size: 18px; font-weight: 800;
-        color: #0071BC; background: rgba(255, 255, 255, 0.85);
+        color: #0071BC; background: rgba(255, 255, 255, 0.95);
         border-bottom: 3px solid #80D8FF; margin: -10px -10px 20px -10px;
     }}
     .rainbow-header {{
@@ -37,7 +37,7 @@ st.markdown(f"""
     }}
     .money-card, .pop-card {{
         background: white !important; border-radius: 20px; padding: 20px; 
-        border: 2px solid #B3E5FC; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        border: 2px solid #B3E5FC; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }}
     .stButton > button {{
         width: 100% !important; height: 60px !important; font-size: 18px !important;
@@ -48,44 +48,56 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 💎 データの絶対防衛ロジック 💎 ---
-# 保存用のキーを完全に新しくして、干渉を防ぎます
-K_Z, K_K, K_M = 'CPA_DB_Z_V1', 'CPA_DB_K_V1', 'CPA_DB_M_V1'
+# --- 4. 💎 データの絶対防衛 💎 ---
+K_Z, K_K, K_M = 'CPA_ULTRA_Z', 'CPA_ULTRA_K', 'CPA_ULTRA_M'
 
-# JavaScriptでデータを取得
 res_z = st_javascript(f"localStorage.getItem('{K_Z}');")
 res_k = st_javascript(f"localStorage.getItem('{K_K}');")
 res_m = st_javascript(f"localStorage.getItem('{K_M}');")
 
-# 🔴 重要：データが読み込めるまで初期化を待機する
-if res_z is None or res_z == "":
-    st.info("データを魔法の袋から取り出しています...🧸（数秒かかります）")
-    st.stop() # 読み込みが終わるまで、下の描画を止める！
+if res_z is None:
+    st.markdown("<h2 style='text-align:center; color:white; margin-top:100px;'>🧸 クマが全集中でデータを読み込み中...</h2>", unsafe_allow_html=True)
+    st.stop()
 
-# 読み込み成功後、session_stateにセット（一度だけ）
 if 'z' not in st.session_state:
-    st.session_state.z = int(res_z) if res_z != "null" else 39
+    st.session_state.z = int(res_z) if res_z and res_z != "null" else 39
 if 'k' not in st.session_state:
-    st.session_state.k = int(res_k) if res_k != "null" else 15
+    st.session_state.k = int(res_k) if res_k and res_k != "null" else 15
 if 'money' not in st.session_state:
-    st.session_state.money = int(res_m) if res_m != "null" else 0
+    st.session_state.money = int(res_m) if res_m and res_m != "null" else 0
 
 def save_all():
     st_javascript(f"localStorage.setItem('{K_Z}', '{st.session_state.z}');")
     st_javascript(f"localStorage.setItem('{K_K}', '{st.session_state.k}');")
     st_javascript(f"localStorage.setItem('{K_M}', '{st.session_state.money}');")
 
-# --- 5. メイン表示 ---
+# --- 📣 メッセージリスト ---
+# 財務会計用
+praises_z = [
+    "財務会計、お疲れ様！複雑な仕訳を乗り越える君の集中力、本当に尊敬しちゃうよ。合格への資産がまた積み上がったね！💎",
+    "借方・貸方の迷宮を突破したね！今の1コマで、君の「会計士の脳」がさらに進化したよ。最高にかっこいい！🧸✨",
+    "ポチッとお疲れ！計算の正確さとスピード、どんどん上がってるんじゃない？君の努力は数字に裏切られないよ！📈",
+    "難しい論点だったよね。でも投げ出さなかった君は本当にえらい！今日の君は、昨日の君より100倍輝いてるよ！🌊"
+]
+
+# 管理会計用
+praises_k = [
+    "管理会計完了！コストの海を泳ぎきったね。君の分析眼はもうプロの域だよ。本当に誇らしい！❄️",
+    "意思決定の天才！今の1コマで、未来を創る力がまた一段と強くなったね。貯金100円と一緒に自信もチャージ完了！💰",
+    "お疲れ様！管理の理論は奥が深いけど、着実に自分のものにしてるね。君の粘り強さは、どんな難問も解き明かすよ！🐾",
+    "この1コマの重み、クマちゃんは分かってるよ。コツコツ積み上げる君が、最後には一番遠いところまで行くんだね！🌻"
+]
+
 if 'daily_msg' not in st.session_state:
     st.session_state.daily_msg = random.choice([
         "今日の一歩が、合格発表の日の自分を救う。🔥",
         "未来の自分に、最高のプレゼントを贈ろう。💎",
-        "君ならできる。クマちゃんは信じてるよ。🐾"
+        "夢を語る人は多い。でも実行する君は特別なんだ。🌊"
     ])
 
+# --- 5. メイン表示 ---
 st.markdown(f'<div class="top-message">🧸 {st.session_state.daily_msg}</div>', unsafe_allow_html=True)
 
-# 完走日数計算
 goal_date = date(2026, 5, 31) 
 days_left = (goal_date - date.today()).days
 st.markdown(f'''
@@ -113,16 +125,19 @@ with col_b:
 
 st.write("---")
 
-col_1, col_2 = st.columns(2)
-
 def click(subj, plus=True):
     if plus:
-        if subj == "z": st.session_state.z += 1
-        else: st.session_state.k += 1
+        if subj == "z":
+            st.session_state.z += 1
+            msg = random.choice(praises_z)
+        else:
+            st.session_state.k += 1
+            msg = random.choice(praises_k)
         st.session_state.money += 100
         save_all()
         st.snow(); st.balloons()
-        time.sleep(1) # 保存の余韻
+        st.toast(msg, icon="🧸") # ここで長文褒め！
+        time.sleep(2)
     else:
         if subj == "z": st.session_state.z -= 1
         else: st.session_state.k -= 1
@@ -130,6 +145,7 @@ def click(subj, plus=True):
         save_all()
     st.rerun()
 
+col_1, col_2 = st.columns(2)
 with col_1:
     st.markdown('<div class="pop-card">', unsafe_allow_html=True)
     st.subheader("📘 財務会計")
