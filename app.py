@@ -18,7 +18,7 @@ def get_image_base64(path):
 
 back_b64 = get_image_base64("back.png")
 
-# --- 3. 💖 見やすさ重視のデザイン (CSS) 💖 ---
+# --- 3. 💖 視認性重視デザイン ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -26,75 +26,56 @@ st.markdown(f"""
         background-size: cover;
         background-attachment: fixed;
     }}
-    
-    /* 📌 最上部の格言：背景を白くして読みやすく */
     .top-message {{
-        text-align: center; padding: 15px; font-size: 20px; font-weight: 800;
-        color: #0071BC; background: rgba(255, 255, 255, 0.8);
+        text-align: center; padding: 15px; font-size: 18px; font-weight: 800;
+        color: #0071BC; background: rgba(255, 255, 255, 0.85);
         border-bottom: 3px solid #80D8FF; margin: -10px -10px 20px -10px;
     }}
-
     .rainbow-header {{
         background: white; border-radius: 20px;
         border: 4px solid #80D8FF; padding: 15px; text-align: center; margin-bottom: 20px;
     }}
-    
-    /* 📌 カード類：透かさない「白」で視認性を確保 */
     .money-card, .pop-card {{
-        background: white !important; 
-        border-radius: 20px;
-        padding: 20px; 
-        border: 2px solid #B3E5FC; 
-        margin-bottom: 15px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        background: white !important; border-radius: 20px; padding: 20px; 
+        border: 2px solid #B3E5FC; margin-bottom: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }}
-
     .stButton > button {{
         width: 100% !important; height: 60px !important; font-size: 18px !important;
         font-weight: bold !important; border-radius: 30px !important; 
     }}
     .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #4FC3F7 0%, #81D4FA 100%) !important; color: white !important; }}
     .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #26C6DA 0%, #80DEEA 100%) !important; color: white !important; }}
-    
-    /* 修正ボタンは控えめに */
-    div.stButton > button[key*="undo"] {{
-        height: 35px !important; font-size: 13px !important; background: #f8f9fa !important; color: #999 !important;
-    }}
-
-    /* 褒めアクション */
-    .praise-action {{
-        position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%);
-        font-size: 100px; font-weight: 900; z-index: 9999; pointer-events: none;
-        animation: super-pop 2s ease-out forwards;
-    }}
-    .praise-word {{ background: linear-gradient(to bottom, #FF1493, #FF69B4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(4px 4px 0px white); }}
-    @keyframes super-pop {{
-        0% {{ transform: translate(-50%, -50%) scale(0); opacity: 0; }}
-        20% {{ transform: translate(-50%, -50%) scale(1.2); opacity: 1; }}
-        100% {{ transform: translate(-50%, -50%) scale(2.0); opacity: 0; }}
-    }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 💎 データの保存機能 💎 ---
-key_z, key_k, key_m = 'cpa_storage_z', 'cpa_storage_k', 'cpa_storage_money'
+# --- 4. 💎 データの絶対防衛ロジック 💎 ---
+# 保存用のキーを完全に新しくして、干渉を防ぎます
+K_Z, K_K, K_M = 'CPA_DB_Z_V1', 'CPA_DB_K_V1', 'CPA_DB_M_V1'
 
-s_z = st_javascript(f"localStorage.getItem('{key_z}');")
-s_k = st_javascript(f"localStorage.getItem('{key_k}');")
-s_m = st_javascript(f"localStorage.getItem('{key_m}');")
+# JavaScriptでデータを取得
+res_z = st_javascript(f"localStorage.getItem('{K_Z}');")
+res_k = st_javascript(f"localStorage.getItem('{K_K}');")
+res_m = st_javascript(f"localStorage.getItem('{K_M}');")
 
+# 🔴 重要：データが読み込めるまで初期化を待機する
+if res_z is None or res_z == "":
+    st.info("データを魔法の袋から取り出しています...🧸（数秒かかります）")
+    st.stop() # 読み込みが終わるまで、下の描画を止める！
+
+# 読み込み成功後、session_stateにセット（一度だけ）
 if 'z' not in st.session_state:
-    st.session_state.z = int(s_z) if s_z and s_z != "null" else 39
+    st.session_state.z = int(res_z) if res_z != "null" else 39
 if 'k' not in st.session_state:
-    st.session_state.k = int(s_k) if s_k and s_k != "null" else 15
+    st.session_state.k = int(res_k) if res_k != "null" else 15
 if 'money' not in st.session_state:
-    st.session_state.money = int(s_m) if s_m and s_m != "null" else 0
+    st.session_state.money = int(res_m) if res_m != "null" else 0
 
 def save_all():
-    st_javascript(f"localStorage.setItem('{key_z}', '{st.session_state.z}');")
-    st_javascript(f"localStorage.setItem('{key_k}', '{st.session_state.k}');")
-    st_javascript(f"localStorage.setItem('{key_m}', '{st.session_state.money}');")
+    st_javascript(f"localStorage.setItem('{K_Z}', '{st.session_state.z}');")
+    st_javascript(f"localStorage.setItem('{K_K}', '{st.session_state.k}');")
+    st_javascript(f"localStorage.setItem('{K_M}', '{st.session_state.money}');")
 
+# --- 5. メイン表示 ---
 if 'daily_msg' not in st.session_state:
     st.session_state.daily_msg = random.choice([
         "今日の一歩が、合格発表の日の自分を救う。🔥",
@@ -102,9 +83,9 @@ if 'daily_msg' not in st.session_state:
         "君ならできる。クマちゃんは信じてるよ。🐾"
     ])
 
-# --- 5. メイン表示 ---
 st.markdown(f'<div class="top-message">🧸 {st.session_state.daily_msg}</div>', unsafe_allow_html=True)
 
+# 完走日数計算
 goal_date = date(2026, 5, 31) 
 days_left = (goal_date - date.today()).days
 st.markdown(f'''
@@ -139,10 +120,9 @@ def click(subj, plus=True):
         if subj == "z": st.session_state.z += 1
         else: st.session_state.k += 1
         st.session_state.money += 100
-        st.markdown(f'<div class="praise-action"><span class="praise-word">{random.choice(["神！！","天才！！","最高！！"])}</span></div>', unsafe_allow_html=True)
-        st.snow(); st.balloons()
         save_all()
-        time.sleep(2)
+        st.snow(); st.balloons()
+        time.sleep(1) # 保存の余韻
     else:
         if subj == "z": st.session_state.z -= 1
         else: st.session_state.k -= 1
@@ -154,7 +134,7 @@ with col_1:
     st.markdown('<div class="pop-card">', unsafe_allow_html=True)
     st.subheader("📘 財務会計")
     st.metric("完了", f"{st.session_state.z} / 70")
-    st.progress(st.session_state.z / 70)
+    st.progress(min(st.session_state.z / 70, 1.0))
     if st.button("💎 財務ポチッ！", key="z_btn"): click("z", True)
     if st.button("修正: 財-1 & ¥-100", key="z_undo"): click("z", False)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -163,7 +143,7 @@ with col_2:
     st.markdown('<div class="pop-card">', unsafe_allow_html=True)
     st.subheader("📙 管理会計")
     st.metric("完了", f"{st.session_state.k} / 33")
-    st.progress(st.session_state.k / 33)
+    st.progress(min(st.session_state.k / 33, 1.0))
     if st.button("❄️ 管理ポチッ！", key="k_btn"): click("k", True)
     if st.button("修正: 管-1 & ¥-100", key="k_undo"): click("k", False)
     st.markdown('</div>', unsafe_allow_html=True)
