@@ -18,7 +18,7 @@ def get_image_base64(path):
 
 back_b64 = get_image_base64("back.png")
 
-# --- 3. 💖 デザイン設定 ---
+# --- 3. 💖 デザイン設定 (視認性強化) 💖 ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -28,53 +28,39 @@ st.markdown(f"""
     }}
     [data-testid="stAppViewBlockContainer"] {{ opacity: 1 !important; }}
     
-    /* 📌 画面最上部のメッセージ（ポップさを抑えて文字を強調） */
+    /* 最上部格言 */
     .top-message {{
-        text-align: center;
-        padding: 15px 10px;
-        font-size: 20px;
-        font-weight: 800;
-        color: #0071BC; /* 落ち着いた濃い水色 */
-        letter-spacing: 1px;
-        background: rgba(255, 255, 255, 0.4); /* 背景は薄く */
-        border-bottom: 2px solid rgba(0, 176, 255, 0.3);
-        margin-bottom: 20px;
-        line-height: 1.4;
+        text-align: center; padding: 15px 10px; font-size: 20px; font-weight: 800;
+        color: #0071BC; background: rgba(255, 255, 255, 0.6);
+        border-bottom: 2px solid rgba(0, 176, 255, 0.3); margin-bottom: 20px;
     }}
 
-    .praise-action {{
-        position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%);
-        font-size: 120px; font-weight: 900;
-        z-index: 9999; pointer-events: none;
-        text-align: center;
-        animation: super-pop 2.5s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards;
-    }}
-    .praise-word {{
-        background: linear-gradient(to bottom, #FF1493, #FF69B4);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        filter: drop-shadow(4px 4px 0px white);
-    }}
-    @keyframes super-pop {{
-        0% {{ transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 0; }}
-        20% {{ transform: translate(-50%, -50%) scale(1.5) rotate(10deg); opacity: 1; }}
-        80% {{ transform: translate(-50%, -50%) scale(1.2) rotate(0deg); opacity: 1; }}
-        100% {{ transform: translate(-50%, -50%) scale(3.0) rotate(5deg); opacity: 0; }}
+    /* 全体をまとめるメインパネル (見やすくするための囲い) */
+    .main-panel {{
+        background: rgba(255, 255, 255, 0.7); /* 背景を少し白く透かす */
+        border-radius: 30px;
+        padding: 20px;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        backdrop-filter: blur(5px); /* 背景を少しぼかして文字を浮き立たせる */
     }}
 
     .rainbow-header {{
-        background: rgba(230, 247, 255, 0.9); border-radius: 20px;
-        border: 4px solid #80D8FF; padding: 15px; text-align: center; margin-bottom: 10px;
+        background: rgba(230, 247, 255, 0.95); border-radius: 20px;
+        border: 4px solid #80D8FF; padding: 15px; text-align: center; margin-bottom: 15px;
     }}
-    .main-title {{ color: #0091EA; font-size: 24px; font-weight: 900; }}
+    
     .money-card {{
-        background: rgba(255, 255, 255, 0.9); border-radius: 25px;
-        padding: 15px; border: 3px solid #FFCCFF; text-align: center; margin-bottom: 10px;
+        background: white; border-radius: 25px;
+        padding: 15px; border: 3px solid #FFCCFF; text-align: center;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }}
+
     .pop-card {{
-        background: rgba(255, 255, 255, 0.95); border-radius: 25px;
+        background: white; border-radius: 25px;
         padding: 20px; border: 3px solid #B3E5FC; margin-bottom: 15px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }}
+
     .stButton > button {{
         width: 100% !important; height: 65px !important; font-size: 20px !important;
         font-weight: bold !important; border-radius: 35px !important; 
@@ -82,13 +68,26 @@ st.markdown(f"""
     }}
     .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #4FC3F7 0%, #81D4FA 100%) !important; color: white !important; }}
     .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #26C6DA 0%, #80DEEA 100%) !important; color: white !important; }}
+    
+    /* 褒めアクション */
+    .praise-action {{
+        position: fixed; top: 45%; left: 50%; transform: translate(-50%, -50%);
+        font-size: 120px; font-weight: 900; z-index: 9999; pointer-events: none; text-align: center;
+        animation: super-pop 2.5s cubic-bezier(0.17, 0.89, 0.32, 1.49) forwards;
+    }}
+    .praise-word {{ background: linear-gradient(to bottom, #FF1493, #FF69B4); -webkit-background-clip: text; -webkit-text-fill-color: transparent; filter: drop-shadow(4px 4px 0px white); }}
+    @keyframes super-pop {{
+        0% {{ transform: translate(-50%, -50%) scale(0) rotate(-20deg); opacity: 0; }}
+        20% {{ transform: translate(-50%, -50%) scale(1.5) rotate(10deg); opacity: 1; }}
+        100% {{ transform: translate(-50%, -50%) scale(3.0) rotate(5deg); opacity: 0; }}
+    }}
     </style>
     """, unsafe_allow_html=True)
 
 # --- 4. 記憶の魔法 ---
-s_z = st_javascript("localStorage.getItem('cpa_v42_z');")
-s_k = st_javascript("localStorage.getItem('cpa_v42_k');")
-s_m = st_javascript("localStorage.getItem('cpa_v42_money');")
+s_z = st_javascript("localStorage.getItem('cpa_v43_z');")
+s_k = st_javascript("localStorage.getItem('cpa_v43_k');")
+s_m = st_javascript("localStorage.getItem('cpa_v43_money');")
 
 if 'z' not in st.session_state:
     st.session_state.z = int(s_z) if s_z and s_z != "null" else 39
@@ -96,34 +95,21 @@ if 'z' not in st.session_state:
     st.session_state.money = int(s_m) if s_m and s_m != "null" else 0
 
 def save_data():
-    st_javascript(f"localStorage.setItem('cpa_v42_z', '{st.session_state.z}');")
-    st_javascript(f"localStorage.setItem('cpa_v42_k', '{st.session_state.k}');")
-    st_javascript(f"localStorage.setItem('cpa_v42_money', '{st.session_state.money}');")
+    st_javascript(f"localStorage.setItem('cpa_v43_z', '{st.session_state.z}');")
+    st_javascript(f"localStorage.setItem('cpa_v43_k', '{st.session_state.k}');")
+    st_javascript(f"localStorage.setItem('cpa_v43_money', '{st.session_state.money}');")
 
-# --- 📣 メッセージ決定 ---
-welcome_messages = [
-    "「今日」という日は、残りの人生の最初の一歩。さあ、最高のスタートを切ろうぜ！🔥",
-    "君が今日流す汗は、合格発表の日の笑顔に変わる。約束するよ。💎",
-    "周りが休んでいる今、君が動けば差は開く。今の1コマが未来の君を救うんだ。🐾",
-    "「無理」を決めるのはいつも自分だ。今日の君なら、その壁を壊せるはず。🧸✨",
-    "会計士試験は自分との戦い。場に立っているだけで君はもうかっこいい！🐬"
-]
-
+# 📣 メッセージ設定
 if 'daily_msg' not in st.session_state:
-    st.session_state.daily_msg = random.choice(welcome_messages)
-
-long_praises = [
-    "信じられないくらい凄い！今の1コマで合格にグッと近づいたよ。君の集中力は本当に異次元だね！🧸✨",
-    "見てたよ！今の論点をやり遂げた君は最高にかっこいい！公認会計士への道がハッキリ見えたね！💎",
-    "ポチッとお疲れ様！自分に打ち勝った証拠がまた一つ増えたね。未来の君を助ける最強の武器だよ！💰🌈"
-]
+    st.session_state.daily_msg = random.choice(["「今日」という日は、残りの人生の最初の一歩！🔥", "今の汗は、合格発表の日の笑顔に変わる。💎", "小さな一歩が、一番遠い場所へ連れて行ってくれる。🐾"])
 
 # --- 5. メイン表示 ---
 
-# 🌟 画面の一番上にメッセージを表示！
 st.markdown(f'<div class="top-message">🧸 {st.session_state.daily_msg}</div>', unsafe_allow_html=True)
 
-# ヘッダー
+# ✨ 全体を囲う白いパネルを開始！
+st.markdown('<div class="main-panel">', unsafe_allow_html=True)
+
 goal_date = date(2026, 5, 31) 
 days_left = (goal_date - date.today()).days
 st.markdown(f'<div class="rainbow-header"><div class="main-title">💎 クマ勉ログ 💎</div><div style="color:#0288D1; font-weight:bold;">完走まで あと {max(0, days_left)} 日</div></div>', unsafe_allow_html=True)
@@ -145,6 +131,7 @@ with top_col2:
     st.markdown('</div>', unsafe_allow_html=True)
 
 st.write("---")
+
 mid_col1, mid_col2 = st.columns(2, gap="small")
 
 def handle_click(subject, plus=True):
@@ -154,11 +141,8 @@ def handle_click(subject, plus=True):
         st.session_state.money += 100
         word = random.choice(["神！！", "天才！！", "最強！！", "優勝！！", "最高！！"])
         st.markdown(f'<div class="praise-action"><span class="praise-word">{word}</span></div>', unsafe_allow_html=True)
-        st.snow()
-        st.balloons()
-        st.toast(random.choice(long_praises), icon="🧸")
-        save_data()
-        time.sleep(2.5)
+        st.snow(); st.balloons()
+        save_data(); time.sleep(2.5)
     else:
         if subject == "z": st.session_state.z -= 1
         else: st.session_state.k -= 1
@@ -171,10 +155,8 @@ with mid_col1:
     st.subheader("📘 財務会計")
     st.metric("完了", f"{st.session_state.z} / 70")
     st.progress(st.session_state.z / 70)
-    if st.button("💎 財務ポチッ！", key="z_btn"):
-        handle_click("z", plus=True)
-    if st.button("修正: 財務-1 & 貯金-100", key="z_undo"):
-        handle_click("z", plus=False)
+    if st.button("💎 財務ポチッ！", key="z_btn"): handle_click("z", plus=True)
+    if st.button("修正: 財務-1 & 貯金-100", key="z_undo"): handle_click("z", plus=False)
     st.markdown('</div>', unsafe_allow_html=True)
 
 with mid_col2:
@@ -182,8 +164,8 @@ with mid_col2:
     st.subheader("📙 管理会計")
     st.metric("完了", f"{st.session_state.k} / 33")
     st.progress(st.session_state.k / 33)
-    if st.button("❄️ 管理ポチッ！", key="k_btn"):
-        handle_click("k", plus=True)
-    if st.button("修正: 管理-1 & 貯金-100", key="k_undo"):
-        handle_click("k", plus=False)
+    if st.button("❄️ 管理ポチッ！", key="k_btn"): handle_click("k", plus=True)
+    if st.button("修正: 管理-1 & 貯金-100", key="k_undo"): handle_click("k", plus=False)
     st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown('</div>', unsafe_allow_html=True) # ✨ メインパネルを閉じる！
