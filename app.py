@@ -89,4 +89,38 @@ with top_col1:
     st.image("bear.png", use_container_width=True)
 with top_col2:
     if st.button("💌 クマからの激励", key="msg_btn"):
-        st.toast(random.choice(["5月31日には笑
+        st.toast(random.choice(["5月31日には笑ってようね！🌸", "今のポチッが未来を変える！🐾", "講義終わらせて最高の夏にしよう☕"]))
+    if st.button("⏲️ 1分タイマー", key="timer_btn"):
+        p = st.empty()
+        for i in range(60, -1, -1):
+            p.write(f"⏳ あと {i} 秒...")
+            time.sleep(1)
+        st.balloons()
+    st.link_button("🌸 CPA講義ページへGO", "https://tlp.edulio.com/cpa/mypage/chapter/")
+
+st.write("---")
+
+# 財務と管理
+mid_col1, mid_col2 = st.columns(2, gap="small")
+
+with mid_col1:
+    st.markdown('<div class="pop-card">', unsafe_allow_html=True)
+    st.subheader("📘 財務会計")
+    st.metric("完了", f"{st.session_state.z} / 70")
+    st.progress(st.session_state.z / 70)
+    if st.button("✨ 財務ポチッ！", key="z_btn"):
+        st.session_state.z += 1; save(); st.balloons(); st.rerun()
+    if st.button("修正: 財務-1", key="z_undo"):
+        st.session_state.z -= 1; save(); st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with mid_col2:
+    st.markdown('<div class="pop-card">', unsafe_allow_html=True)
+    st.subheader("📙 管理会計")
+    st.metric("完了", f"{st.session_state.k} / 33")
+    st.progress(st.session_state.k / 33)
+    if st.button("🔥 管理ポチッ！", key="k_btn"):
+        st.session_state.k += 1; save(); st.balloons(); st.rerun()
+    if st.button("修正: 管理-1", key="k_undo"):
+        st.session_state.k -= 1; save(); st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
