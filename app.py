@@ -68,13 +68,18 @@ st.markdown(f"""
     }}
     .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #4FC3F7 0%, #81D4FA 100%) !important; color: white !important; box-shadow: 0 6px 0px #039BE5 !important; }}
     .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #26C6DA 0%, #80DEEA 100%) !important; color: white !important; box-shadow: 0 6px 0px #00ACC1 !important; }}
+    /* 修正ボタンは少し控えめに */
+    .stButton > button[key*="undo"] {{
+        height: 40px !important; font-size: 14px !important; background: #f0f2f6 !important; color: #666 !important; box-shadow: none !important;
+    }}
     </style>
     """, unsafe_allow_html=True)
 
 # --- 4. 記憶の魔法 ---
-s_z = st_javascript("localStorage.getItem('cpa_v39_z');")
-s_k = st_javascript("localStorage.getItem('cpa_v39_k');")
-s_m = st_javascript("localStorage.getItem('cpa_v39_money');")
+# データの一貫性を保つためIDを固定
+s_z = st_javascript("localStorage.getItem('cpa_v40_z');")
+s_k = st_javascript("localStorage.getItem('cpa_v40_k');")
+s_m = st_javascript("localStorage.getItem('cpa_v40_money');")
 
 if 'z' not in st.session_state:
     st.session_state.z = int(s_z) if s_z and s_z != "null" else 39
@@ -82,32 +87,29 @@ if 'z' not in st.session_state:
     st.session_state.money = int(s_m) if s_m and s_m != "null" else 0
 
 def save_data():
-    st_javascript(f"localStorage.setItem('cpa_v39_z', '{st.session_state.z}');")
-    st_javascript(f"localStorage.setItem('cpa_v39_k', '{st.session_state.k}');")
-    st_javascript(f"localStorage.setItem('cpa_v39_money', '{st.session_state.money}');")
+    st_javascript(f"localStorage.setItem('cpa_v40_z', '{st.session_state.z}');")
+    st_javascript(f"localStorage.setItem('cpa_v40_k', '{st.session_state.k}');")
+    st_javascript(f"localStorage.setItem('cpa_v40_money', '{st.session_state.money}');")
 
-# --- 📣 モチベ爆上げ！お迎えメッセージ ---
+# --- 📣 モチベお迎えメッセージ ---
 welcome_messages = [
     "「今日」という日は、残りの人生の最初の一歩。さあ、最高のスタートを切ろうぜ！🔥",
-    "君が今日流す汗は、合格発表の日に「嬉し涙」に変わる。約束するよ。💎",
+    "君が今日流す汗は、合格発表の日の笑顔に変わる。約束するよ。💎",
     "周りが休んでいる今、君が動けば差は開く。今の1コマが未来の君を救うんだ。🐾",
-    "「無理」を決めるのはいつも自分だ。今日の君なら、その壁を壊せるはず。🧸✨",
-    "会計士試験は自分との戦い。そして、君はもうその戦いの場に立っている。それだけで十分かっこいいよ。🐬",
-    "夢を語る人は多い。でも、こうしてアプリを開いて実行する人は一握り。君はその一握りなんだ！🌊",
-    "疲れてるかもしれない。でも、君の心はまだ燃えてるよね？1コマだけ、いってみよう！🚀"
-]
-
-# 褒め言葉（激褒め！）
-long_praises = [
-    "信じられないくらい凄い！今の1コマで合格にグッと近づいたよ。君の集中力は本当に異次元だね！🧸✨",
-    "見てたよ！今の論点をやり遂げた君は最高にかっこいい！公認会計士への道がハッキリ見えたね！💎",
-    "ポチッとお疲れ様！自分に打ち勝った証拠がまた一つ増えたね。未来の君を助ける最強の武器だよ！💰🌈",
-    "君の努力をクマちゃんは全力で全肯定するよ！本当に、本当に、えらすぎる！！🌻💎"
+    "夢を語る人は多い。でも実行する人は一握り。君はその一握りなんだ！🌊"
 ]
 
 if 'first_visit' not in st.session_state:
     st.toast(random.choice(welcome_messages), icon="🧸")
     st.session_state.first_visit = True
+    time.sleep(2.0) # お出迎えメッセージをしっかり見せるためのタメ！
+
+# 激褒め長文
+long_praises = [
+    "信じられないくらい凄い！今の1コマで合格にグッと近づいたよ。君の集中力は本当に異次元だね！🧸✨",
+    "見てたよ！今の論点をやり遂げた君は最高にかっこいい！公認会計士への道がハッキリ見えたね！💎",
+    "ポチッとお疲れ様！自分に打ち勝った証拠がまた一つ増えたね。未来の君を助ける最強の武器だよ！💰🌈"
+]
 
 # --- 5. メイン表示 ---
 goal_date = date(2026, 5, 31) 
@@ -134,17 +136,25 @@ with top_col2:
 st.write("---")
 mid_col1, mid_col2 = st.columns(2, gap="small")
 
-def handle_click(subject):
-    if subject == "z": st.session_state.z += 1
-    else: st.session_state.k += 1
-    st.session_state.money += 100
-    save_data()
-    word = random.choice(["神！！", "天才！！", "最強！！", "優勝！！", "最高！！"])
-    st.markdown(f'<div class="praise-action"><span class="praise-word">{word}</span></div>', unsafe_allow_html=True)
-    st.snow()
-    st.balloons()
-    st.toast(random.choice(long_praises), icon="🧸")
-    time.sleep(2.5)
+# --- アクション用関数 ---
+def handle_click(subject, plus=True):
+    if plus:
+        if subject == "z": st.session_state.z += 1
+        else: st.session_state.k += 1
+        st.session_state.money += 100
+        word = random.choice(["神！！", "天才！！", "最強！！", "優勝！！", "最高！！"])
+        st.markdown(f'<div class="praise-action"><span class="praise-word">{word}</span></div>', unsafe_allow_html=True)
+        st.snow()
+        st.balloons()
+        st.toast(random.choice(long_praises), icon="🧸")
+        save_data()
+        time.sleep(2.5)
+    else:
+        # 修正（戻る）のとき
+        if subject == "z": st.session_state.z -= 1
+        else: st.session_state.k -= 1
+        st.session_state.money -= 100 # ここで貯金もマイナス100！
+        save_data()
     st.rerun()
 
 with mid_col1:
@@ -153,9 +163,9 @@ with mid_col1:
     st.metric("完了", f"{st.session_state.z} / 70")
     st.progress(st.session_state.z / 70)
     if st.button("💎 財務ポチッ！", key="z_btn"):
-        handle_click("z")
-    if st.button("修正: 財務-1", key="z_undo"):
-        st.session_state.z -= 1; save_data(); st.rerun()
+        handle_click("z", plus=True)
+    if st.button("修正: 財務-1 & 貯金-100", key="z_undo"):
+        handle_click("z", plus=False)
     st.markdown('</div>', unsafe_allow_html=True)
 
 with mid_col2:
@@ -164,7 +174,7 @@ with mid_col2:
     st.metric("完了", f"{st.session_state.k} / 33")
     st.progress(st.session_state.k / 33)
     if st.button("❄️ 管理ポチッ！", key="k_btn"):
-        handle_click("k")
-    if st.button("修正: 管理-1", key="k_undo"):
-        st.session_state.k -= 1; save_data(); st.rerun()
+        handle_click("k", plus=True)
+    if st.button("修正: 管理-1 & 貯金-100", key="k_undo"):
+        handle_click("k", plus=False)
     st.markdown('</div>', unsafe_allow_html=True)
