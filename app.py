@@ -121,4 +121,4 @@ with mid_col1:
     st.metric("完了", f"{st.session_state.z} / 70")
     st.progress(st.session_state.z / 70)
     if st.button("✨ 財務ポチッ！", key="z_btn"):
-        st.session_state.z += 1; save(); st.balloons();
+        st.session_state.z += 1; save(); st.balloons();oons();
