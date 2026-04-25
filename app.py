@@ -18,7 +18,7 @@ def get_image_base64(path):
 
 back_b64 = get_image_base64("back.png")
 
-# --- 3. 💖 デザイン (視認性MAX) ---
+# --- 3. 💖 デザイン ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -48,62 +48,56 @@ st.markdown(f"""
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 💎 データの絶対防衛 💎 ---
-K_Z, K_K, K_M = 'CPA_ULTRA_Z', 'CPA_ULTRA_K', 'CPA_ULTRA_M'
+# --- 4. 💎 データの絶対防衛（新・金庫システム） 💎 ---
+# キーを完全にリフレッシュします
+DB_KEYS = {'z': 'CPA_MASTER_Z', 'k': 'CPA_MASTER_K', 'm': 'CPA_MASTER_M'}
 
-res_z = st_javascript(f"localStorage.getItem('{K_Z}');")
-res_k = st_javascript(f"localStorage.getItem('{K_K}');")
-res_m = st_javascript(f"localStorage.getItem('{K_M}');")
+# データの読み込み
+val_z = st_javascript(f"localStorage.getItem('{DB_KEYS['z']}');")
+val_k = st_javascript(f"localStorage.getItem('{DB_KEYS['k']}');")
+val_m = st_javascript(f"localStorage.getItem('{DB_KEYS['m']}');")
 
-if res_z is None:
-    st.markdown("<h2 style='text-align:center; color:white; margin-top:100px;'>🧸 クマが全集中でデータを読み込み中...</h2>", unsafe_allow_html=True)
+# 🔴 読み込み待ち：データが「未確定」の間は、絶対に初期値を代入させない
+if val_z is None:
+    st.markdown("<h2 style='text-align:center; color:white; margin-top:100px;'>🧸 クマが金庫を確認中...</h2>", unsafe_allow_html=True)
     st.stop()
 
-if 'z' not in st.session_state:
-    st.session_state.z = int(res_z) if res_z and res_z != "null" else 39
-if 'k' not in st.session_state:
-    st.session_state.k = int(res_k) if res_k and res_k != "null" else 15
-if 'money' not in st.session_state:
-    st.session_state.money = int(res_m) if res_m and res_m != "null" else 0
+# 読み込みが完了してからセッションに格納
+if 'init_done' not in st.session_state:
+    st.session_state.z = int(val_z) if val_z and val_z != "null" else 39
+    st.session_state.k = int(val_k) if val_k and val_k != "null" else 15
+    st.session_state.money = int(val_m) if val_m and val_m != "null" else 0
+    st.session_state.init_done = True
 
-def save_all():
-    st_javascript(f"localStorage.setItem('{K_Z}', '{st.session_state.z}');")
-    st_javascript(f"localStorage.setItem('{K_K}', '{st.session_state.k}');")
-    st_javascript(f"localStorage.setItem('{K_M}', '{st.session_state.money}');")
+def sync_db():
+    st_javascript(f"localStorage.setItem('{DB_KEYS['z']}', '{st.session_state.z}');")
+    st_javascript(f"localStorage.setItem('{DB_KEYS['k']}', '{st.session_state.k}');")
+    st_javascript(f"localStorage.setItem('{DB_KEYS['m']}', '{st.session_state.money}');")
 
-# --- 📣 メッセージリスト ---
-# 財務会計用
-praises_z = [
-    "財務会計、お疲れ様！複雑な仕訳を乗り越える君の集中力、本当に尊敬しちゃうよ。合格への資産がまた積み上がったね！💎",
-    "借方・貸方の迷宮を突破したね！今の1コマで、君の「会計士の脳」がさらに進化したよ。最高にかっこいい！🧸✨",
-    "ポチッとお疲れ！計算の正確さとスピード、どんどん上がってるんじゃない？君の努力は数字に裏切られないよ！📈",
-    "難しい論点だったよね。でも投げ出さなかった君は本当にえらい！今日の君は、昨日の君より100倍輝いてるよ！🌊"
-]
-
-# 管理会計用
-praises_k = [
-    "管理会計完了！コストの海を泳ぎきったね。君の分析眼はもうプロの域だよ。本当に誇らしい！❄️",
-    "意思決定の天才！今の1コマで、未来を創る力がまた一段と強くなったね。貯金100円と一緒に自信もチャージ完了！💰",
-    "お疲れ様！管理の理論は奥が深いけど、着実に自分のものにしてるね。君の粘り強さは、どんな難問も解き明かすよ！🐾",
-    "この1コマの重み、クマちゃんは分かってるよ。コツコツ積み上げる君が、最後には一番遠いところまで行くんだね！🌻"
-]
-
+# --- 📣 メッセージ設定 ---
 if 'daily_msg' not in st.session_state:
     st.session_state.daily_msg = random.choice([
-        "今日の一歩が、合格発表の日の自分を救う。🔥",
         "未来の自分に、最高のプレゼントを贈ろう。💎",
-        "夢を語る人は多い。でも実行する君は特別なんだ。🌊"
+        "君が今日流す汗は、合格発表の日の笑顔に変わる。約束するよ。🔥",
+        "小さな一歩が、一番遠い場所へ連れて行ってくれる。🐾"
     ])
+
+# 褒め言葉（熱烈）
+praises = {
+    "z": ["財務会計の神！複雑な仕訳をさらっとこなす君、かっこよすぎる！💎", "仕訳の積み重ねは合格への資産！資産価値が爆上がりだね！📈"],
+    "k": ["管理会計の天才！コストと時間を支配する君はもうプロの会計士！❄️", "意思決定のスピード、最高だね！今日の君は無敵だよ！💰"]
+}
 
 # --- 5. メイン表示 ---
 st.markdown(f'<div class="top-message">🧸 {st.session_state.daily_msg}</div>', unsafe_allow_html=True)
 
+# 完走日数
 goal_date = date(2026, 5, 31) 
 days_left = (goal_date - date.today()).days
 st.markdown(f'''
     <div class="rainbow-header">
         <h2 style="margin:0; color:#0091EA;">💎 クマ勉ログ 💎</h2>
-        <p style="margin:0; font-weight:bold; color:#666;">目標完走まで あと {max(0, days_left)} 日</p>
+        <p style="margin:0; font-weight:bold; color:#666;">完走まで あと {max(0, days_left)} 日</p>
     </div>
     ''', unsafe_allow_html=True)
 
@@ -125,24 +119,19 @@ with col_b:
 
 st.write("---")
 
-def click(subj, plus=True):
+def handle_click(subj, plus=True):
     if plus:
-        if subj == "z":
-            st.session_state.z += 1
-            msg = random.choice(praises_z)
-        else:
-            st.session_state.k += 1
-            msg = random.choice(praises_k)
+        if subj == "z": st.session_state.z += 1
+        else: st.session_state.k += 1
         st.session_state.money += 100
-        save_all()
         st.snow(); st.balloons()
-        st.toast(msg, icon="🧸") # ここで長文褒め！
-        time.sleep(2)
+        st.toast(random.choice(praises[subj]), icon="🧸")
     else:
         if subj == "z": st.session_state.z -= 1
         else: st.session_state.k -= 1
         st.session_state.money -= 100
-        save_all()
+    sync_db()
+    time.sleep(0.5)
     st.rerun()
 
 col_1, col_2 = st.columns(2)
@@ -151,8 +140,8 @@ with col_1:
     st.subheader("📘 財務会計")
     st.metric("完了", f"{st.session_state.z} / 70")
     st.progress(min(st.session_state.z / 70, 1.0))
-    if st.button("💎 財務ポチッ！", key="z_btn"): click("z", True)
-    if st.button("修正: 財-1 & ¥-100", key="z_undo"): click("z", False)
+    if st.button("💎 財務ポチッ！", key="z_btn"): handle_click("z", True)
+    if st.button("修正: 財-1 & ¥-100", key="z_undo"): handle_click("z", False)
     st.markdown('</div>', unsafe_allow_html=True)
 
 with col_2:
@@ -160,6 +149,6 @@ with col_2:
     st.subheader("📙 管理会計")
     st.metric("完了", f"{st.session_state.k} / 33")
     st.progress(min(st.session_state.k / 33, 1.0))
-    if st.button("❄️ 管理ポチッ！", key="k_btn"): click("k", True)
-    if st.button("修正: 管-1 & ¥-100", key="k_undo"): click("k", False)
+    if st.button("❄️ 管理ポチッ！", key="k_btn"): handle_click("k", True)
+    if st.button("修正: 管-1 & ¥-100", key="k_undo"): handle_click("k", False)
     st.markdown('</div>', unsafe_allow_html=True)
