@@ -8,7 +8,7 @@ from streamlit_javascript import st_javascript
 # --- 1. ページ設定 ---
 st.set_page_config(page_title="クマ勉ログ 🎀", page_icon="🧸", layout="wide")
 
-# --- 2. 画像読み込みの魔法 ---
+# --- 2. 画像読み込み ---
 def get_image_base64(path):
     try:
         with open(path, "rb") as f:
@@ -18,7 +18,7 @@ def get_image_base64(path):
 
 back_b64 = get_image_base64("back.png")
 
-# --- 3. 💖 横長スッキリ・デザイン (CSS) 💖 ---
+# --- 3. 💖 デザイン設定 ---
 st.markdown(f"""
     <style>
     .stApp {{
@@ -29,96 +29,64 @@ st.markdown(f"""
     .rainbow-header {{
         background: rgba(255, 255, 255, 0.85);
         border-radius: 20px;
-        border: 4px solid;
-        border-image: linear-gradient(to right, #ff99ff, #99ffff) 1;
-        padding: 10px;
+        border: 4px solid #FFCCFF;
+        padding: 15px;
         text-align: center;
-        margin-bottom: 15px;
+        margin-bottom: 10px;
     }}
-    .main-title {{ color: #FF66CC; font-size: 28px; font-weight: 900; margin: 0; }}
+    .main-title {{ color: #FF66CC; font-size: 24px; font-weight: 900; }}
     .pop-card {{
-        background: rgba(255, 255, 255, 0.85);
+        background: rgba(255, 255, 255, 0.9);
         border-radius: 20px;
         padding: 15px;
         border: 2px solid #FFCCFF;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        min-height: 250px;
+        margin-bottom: 10px;
+        width: 100%;
+        box-sizing: border-box;
     }}
     .stButton > button {{
-        height: 60px !important;
-        font-size: 20px !important;
-        font-weight: bold !important;
-        border-radius: 30px !important;
-        border: 3px solid #FFFFFF !important;
+        width: 100% !important; height: 60px !important; font-size: 18px !important;
+        font-weight: bold !important; border-radius: 30px !important; border: 3px solid #FFFFFF !important;
     }}
-    .stButton > button[key="z_btn"] {{
-        background: linear-gradient(135deg, #FF66CC 0%, #FF99CC 100%) !important;
-        box-shadow: 0 5px 0px #CC3399 !important;
-    }}
-    .stButton > button[key="k_btn"] {{
-        background: linear-gradient(135deg, #33CCFF 0%, #99EEFF 100%) !important;
-        box-shadow: 0 5px 0px #0099CC !important;
-    }}
-    [data-testid="stMetricValue"] {{
-        color: #FF1493 !important;
-        font-size: 35px !important;
-    }}
+    .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #FF66CC 0%, #FF99CC 100%) !important; }}
+    .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #33CCFF 0%, #99EEFF 100%) !important; }}
+    [data-testid="stMetricValue"] {{ color: #FF1493 !important; font-size: 28px !important; }}
     </style>
     """, unsafe_allow_html=True)
 
 # --- 4. 記憶の魔法 ---
-s_z = st_javascript("localStorage.getItem('cpa_v20_z');")
-s_k = st_javascript("localStorage.getItem('cpa_v20_k');")
+# 以前のデータと混ざらないようIDを更新
+s_z = st_javascript("localStorage.getItem('cpa_v23_z');")
+s_k = st_javascript("localStorage.getItem('cpa_v23_k');")
 
 if 'z' not in st.session_state:
     st.session_state.z = int(s_z) if s_z and s_z != "null" else 39
     st.session_state.k = int(s_k) if s_k and s_k != "null" else 15
 
 def save():
-    st_javascript(f"localStorage.setItem('cpa_v20_z', '{st.session_state.z}');")
-    st_javascript(f"localStorage.setItem('cpa_v20_k', '{st.session_state.k}');")
+    st_javascript(f"localStorage.setItem('cpa_v23_z', '{st.session_state.z}');")
+    st_javascript(f"localStorage.setItem('cpa_v23_k', '{st.session_state.k}');")
 
 # --- 5. メイン表示 ---
 
-# ヘッダー
-days_left = (date(2026, 5, 31) - date.today()).days
-st.markdown(f"""
-    <div class="rainbow-header">
-        <span class="main-title">✨ クマ勉ログ ✨</span>
-        <span style="color:#6666FF; font-weight:bold; margin-left:20px;">
-            試験まであと <b>{max(0, days_left)}</b> 日！
-        </span>
-    </div>
-    """, unsafe_allow_html=True)
+# 目標日を 2026年5月31日に設定
+goal_date = date(2026, 5, 31) 
+days_left = (goal_date - date.today()).days
 
-# 上段：クマさん・応援・タイマー
-top_col1, top_col2, top_col3 = st.columns([1, 1, 1.5])
+st.markdown(f'''
+    <div class="rainbow-header">
+        <div class="main-title">✨ クマ勉ログ ✨</div>
+        <div style="color:#6666FF; font-weight:bold; font-size:18px; margin-top:5px;">
+            🎉 全講義完走まで あと <span style="font-size:28px; color:#FF1493;">{max(0, days_left)}</span> 日！
+        </div>
+        <div style="font-size:12px; color:#999;">（目標リミット: {goal_date.strftime('%Y年%m月%d日')}）</div>
+    </div>
+    ''', unsafe_allow_html=True)
+
+# クマさんとツール
+top_col1, top_col2 = st.columns([1, 1.5])
 with top_col1:
     st.image("bear.png", use_container_width=True)
 with top_col2:
-    st.markdown("##### 🧸 応援＆リンク")
-    if st.button("💌 応援もらう！"):
-        st.toast(random.choice(["君ならできる！💪", "休憩も大事☕", "天才すぎる！✨", "1コマ前進！🐾"]))
-    st.link_button("🌸 CPA講義へGO", "https://tlp.edulio.com/cpa/mypage/chapter/")
-with top_col3:
-    st.markdown("##### ⏱️ 集中タイマー")
-    if st.button("⏲️ 1分スタート！"):
-        p = st.empty()
-        for i in range(60, -1, -1):
-            p.write(f"⏳ あと {i} 秒...")
-            time.sleep(1)
-        st.success("お疲れ様！えらい！")
-        st.balloons()
-
-st.write("---")
-
-# 下段：財務と管理を左右に並べる
-mid_col1, mid_col2 = st.columns(2)
-
-with mid_col1:
-    st.markdown('<div class="pop-card">', unsafe_allow_html=True)
-    st.subheader("📘 財務会計")
-    st.metric("完了", f"{st.session_state.z} / 70")
-    st.progress(st.session_state.z / 70)
-    if st.button("✨ 財務ポチッ！", key="z_btn"):
-        st.session_state.z += 1; save(); st.balloons();oons();
+    if st.button("💌 クマからの激励", key="msg_btn"):
+        st.toast(random.choice(["5月31日には笑
