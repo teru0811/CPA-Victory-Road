@@ -26,7 +26,6 @@ st.markdown(f"""
         background-size: cover;
         background-attachment: fixed;
     }}
-    /* 【修正箇所】メッセージを白背景・青文字に */
     .top-message {{
         text-align: center; padding: 15px; font-size: 20px; font-weight: 800;
         color: #0288D1; background: rgba(255, 255, 255, 0.95);
@@ -34,19 +33,21 @@ st.markdown(f"""
         margin: -10px 0px 20px 0px;
         box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }}
-    .money-card, .pop-card {{
+    .money-card, .pop-card, .timer-card {{
         background: white !important; border-radius: 20px; padding: 20px; 
         border: 2px solid #B3E5FC; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }}
     .stButton > button {{
-        width: 100% !important; height: 80px !important; font-size: 24px !important;
-        font-weight: bold !important; border-radius: 40px !important;
+        width: 100% !important; height: 75px !important; font-size: 22px !important;
+        font-weight: bold !important; border-radius: 35px !important;
         transition: 0.3s; border: none !important;
     }}
-    .stButton > button:hover {{ transform: scale(1.05); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }}
+    .stButton > button:hover {{ transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }}
     
-    .stButton > button[key*="z_btn"] {{ background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%) !important; color: white !important; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }}
-    .stButton > button[key*="k_btn"] {{ background: linear-gradient(135deg, #CFD8DC 0%, #78909C 100%) !important; color: white !important; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }}
+    /* ボタン色設定 */
+    .stButton > button[key*="z_btn"] {{ background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%) !important; color: white !important; }}
+    .stButton > button[key*="k_btn"] {{ background: linear-gradient(135deg, #CFD8DC 0%, #78909C 100%) !important; color: white !important; }}
+    .stButton > button[key*="timer_btn"] {{ background: linear-gradient(135deg, #FF8A65 0%, #E64A19 100%) !important; color: white !important; height: 60px !important; font-size: 18px !important; }}
     </style>
     """, unsafe_allow_html=True)
 
@@ -56,22 +57,10 @@ def play_conffeti():
     <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:999999;"></canvas>
     <script src="https://cdn.jsdelivr.net/npm/confetti-js@0.0.18/dist/index.min.js"></script>
     <script>
-        var confettiSettings = { 
-            target: 'confetti-canvas',
-            respawn: false, 
-            size: 2,
-            start_from_edge: true,
-            clock: 40, 
-            props: ['circle', 'rect', 'triangle'],
-            colors: [[255,215,0],[255,255,255],[0,199,235],[230,61,135]],
-            count: 200
-        };
+        var confettiSettings = { target: 'confetti-canvas', respawn: false, size: 2, start_from_edge: true, clock: 40, props: ['circle', 'rect', 'triangle'], colors: [[255,215,0],[255,255,255],[0,199,235],[230,61,135]], count: 200 };
         var confetti = new ConfettiGenerator(confettiSettings);
         confetti.render();
-        setTimeout(() => {
-            confetti.clear();
-            document.getElementById('confetti-canvas').remove();
-        }, 5000);
+        setTimeout(() => { confetti.clear(); document.getElementById('confetti-canvas').remove(); }, 5000);
     </script>
     """
     components.html(confetti_js, height=0)
@@ -82,13 +71,12 @@ if 'z' not in st.session_state: st.session_state.z = int(query_params.get("z", 3
 if 'k' not in st.session_state: st.session_state.k = int(query_params.get("k", 15))
 if 'money' not in st.session_state: st.session_state.money = int(query_params.get("m", 0))
 
-# --- 🔥 モチベ爆上げメッセージ設定 ---
+# --- 🔥 モチベ爆上げメッセージ ---
 if 'daily_msg' not in st.session_state:
     st.session_state.daily_msg = random.choice([
         "🔥 君が今日ポチッたその1回が、合格発表の日の涙を笑顔に変える！",
         "💎 公認会計士という未来を、今、自分の手で引き寄せてるぞ！",
         "🐾 疲れてても1コマやった。その『意地』が君を最強の会計士にする！",
-        "👑 誰も見ていない場所での努力。それが君の最大の武器だ！",
         "🚀 限界なんて、昨日までの君が決めた勝手な境界線にすぎない！",
         "💰 貯まった100円は、未来の自分への『先行投資』だ。積み上げろ！",
         "✨ 迷ったら進め！君の『やりたい』という気持ちが、何よりの正解だ！"
@@ -103,10 +91,22 @@ col_a, col_b = st.columns([1, 1.5])
 with col_a:
     st.image("bear.png", use_container_width=True)
 with col_b:
+    # 💰 貯金箱カード
     st.markdown('<div class="money-card">', unsafe_allow_html=True)
-    st.image("money_bag.png", width=100) 
+    st.image("money_bag.png", width=80) 
     st.markdown(f"<h1 style='color:#FFB300; margin:0;'>¥ {st.session_state.money:,}</h1>", unsafe_allow_html=True)
     st.link_button("🌸 講義ページを開く", "https://tlp.edulio.com/cpa/mypage/chapter/")
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # ⏳ 1分タイマーカード (絶対まずは1分やるボタン)
+    st.markdown('<div class="timer-card">', unsafe_allow_html=True)
+    if st.button("🔥 絶対まずは1分やる！開始", key="timer_btn"):
+        placeholder = st.empty()
+        for i in range(60, -1, -1):
+            placeholder.markdown(f"<h2 style='text-align:center; color:#E64A19;'>⏳ あと {i} 秒... 集中！</h2>", unsafe_allow_html=True)
+            time.sleep(1)
+        placeholder.markdown("<h2 style='text-align:center; color:#4CAF50;'>✅ 1分完走！そのまま本番いこう！</h2>", unsafe_allow_html=True)
+        st.balloons()
     st.markdown('</div>', unsafe_allow_html=True)
 
 # 🚀 クリック処理
