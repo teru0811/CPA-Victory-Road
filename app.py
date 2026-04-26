@@ -27,48 +27,47 @@ st.markdown(f"""
         background-attachment: fixed;
     }}
     .top-message {{
-        text-align: center; padding: 15px; font-size: 18px; font-weight: 800;
-        color: #0071BC; background: rgba(255, 255, 255, 0.95);
-        border-bottom: 3px solid #80D8FF; margin: -10px -10px 20px -10px;
+        text-align: center; padding: 15px; font-size: 20px; font-weight: 800;
+        color: #FFFFFF; background: linear-gradient(90deg, #0288D1, #26C6DA);
+        border-bottom: 4px solid #FFD700; margin: -10px -10px 20px -10px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }}
     .money-card, .pop-card {{
         background: white !important; border-radius: 20px; padding: 20px; 
         border: 2px solid #B3E5FC; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1);
     }}
     .stButton > button {{
-        width: 100% !important; height: 75px !important; font-size: 22px !important;
-        font-weight: bold !important; border-radius: 35px !important;
-        transition: 0.3s;
+        width: 100% !important; height: 80px !important; font-size: 24px !important;
+        font-weight: bold !important; border-radius: 40px !important;
+        transition: 0.3s; border: none !important;
     }}
-    .stButton > button:hover {{ transform: scale(1.02); box-shadow: 0 5px 15px rgba(0,0,0,0.2); }}
-    /* 財務ボタン：金メダルカラー */
-    .stButton > button[key*="z_btn"] {{ background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%) !important; color: white !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }}
-    /* 管理ボタン：銀メダルカラー */
-    .stButton > button[key*="k_btn"] {{ background: linear-gradient(135deg, #E0E0E0 0%, #9E9E9E 100%) !important; color: white !important; text-shadow: 1px 1px 2px rgba(0,0,0,0.3); }}
+    .stButton > button:hover {{ transform: scale(1.05); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }}
+    
+    /* 財務ボタン：勝利のゴールド */
+    .stButton > button[key*="z_btn"] {{ background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%) !important; color: white !important; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }}
+    /* 管理ボタン：不屈のシルバー */
+    .stButton > button[key*="k_btn"] {{ background: linear-gradient(135deg, #CFD8DC 0%, #78909C 100%) !important; color: white !important; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 🎉 超ド派手・おめでとう紙吹雪システム (JavaScript) ---
+# --- 4. 🎉 画面全体に降り注ぐ紙吹雪 (JavaScript) ---
 def play_conffeti():
-    # 画面全体に広がるCanvasを作成し、紙吹雪を降らせるJSコード
-    # 5秒間かけて下まで落ちて消える設定
     confetti_js = """
     <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:999999;"></canvas>
     <script src="https://cdn.jsdelivr.net/npm/confetti-js@0.0.18/dist/index.min.js"></script>
     <script>
         var confettiSettings = { 
             target: 'confetti-canvas',
-            respawn: false, // 一回きり
-            size: 1.5,
-            start_from_edge: true, // 上から降らす
-            clock: 35, // 落ちる速度（少しゆっくり）
-            props: ['circle', 'rect', 'triangle', 'line'],
-            colors: [[165,104,246],[230,61,135],[0,199,235],[253,182,0]], # カラフル
-            count: 150 # たくさん降らす
+            respawn: false, 
+            size: 2,
+            start_from_edge: true,
+            clock: 40, 
+            props: ['circle', 'rect', 'triangle'],
+            colors: [[255,215,0],[255,255,255],[0,199,235],[230,61,135]],
+            count: 200
         };
         var confetti = new ConfettiGenerator(confettiSettings);
         confetti.render();
-        // 5秒後にCanvasを削除して画面を綺麗にする
         setTimeout(() => {
             confetti.clear();
             document.getElementById('confetti-canvas').remove();
@@ -83,17 +82,23 @@ if 'z' not in st.session_state: st.session_state.z = int(query_params.get("z", 3
 if 'k' not in st.session_state: st.session_state.k = int(query_params.get("k", 15))
 if 'money' not in st.session_state: st.session_state.money = int(query_params.get("m", 0))
 
-# --- 📣 お祝いメッセージリスト ---
-praises = [
-    "🎉 天才！合格間違いなし！",
-    "㊗️ おめでとう！努力の結晶だね！",
-    "✨ 神対応！次もこの調子で！",
-    "🏆 優勝！自分史上最高の集中力！",
-    "💖 最高！クマちゃんも鼻が高いよ！"
-]
+# --- 🔥 モチベ爆上げメッセージ設定 ---
+if 'daily_msg' not in st.session_state:
+    st.session_state.daily_msg = random.choice([
+        "🔥 君が今日ポチッたその1回が、合格発表の日の涙を笑顔に変える！",
+        "💎 公認会計士という未来を、今、自分の手で引き寄せてるぞ！",
+        "🐾 疲れてても1コマやった。その『意地』が君を最強の会計士にする！",
+        "👑 誰も見ていない場所での努力。それが君の最大の武器だ！",
+        "🚀 限界なんて、昨日までの君が決めた勝手な境界線にすぎない！",
+        "💰 貯まった100円は、未来の自分への『先行投資』だ。積み上げろ！",
+        "✨ 迷ったら進め！君の『やりたい』という気持ちが、何よりの正解だ！"
+    ])
+
+# --- 📣 お祝い褒め言葉リスト ---
+praises = ["🎉 天才！", "㊗️ おめでとう！", "✨ 神対応！", "🏆 優勝！", "💖 最高！"]
 
 # --- 6. メイン表示 ---
-st.markdown(f'<div class="top-message">🧸 画面がキラキラする時は、君が輝いてる時！</div>', unsafe_allow_html=True)
+st.markdown(f'<div class="top-message">🧸 {st.session_state.daily_msg}</div>', unsafe_allow_html=True)
 
 col_a, col_b = st.columns([1, 1.5])
 with col_a:
@@ -105,8 +110,7 @@ with col_b:
     st.link_button("🌸 講義ページを開く", "https://tlp.edulio.com/cpa/mypage/chapter/")
     st.markdown('</div>', unsafe_allow_html=True)
 
-# 🚀 クリック処理（ド派手演出バージョン）
-# セッション状態を保持するためのダミーコンポーネント
+# 🚀 クリック処理
 if 'playing_effect' not in st.session_state:
     st.session_state.playing_effect = False
 
@@ -115,30 +119,22 @@ def handle_click(subj, plus=True):
         if subj == "z": st.session_state.z += 1
         else: st.session_state.k += 1
         st.session_state.money += 100
-        
-        # クマの褒め言葉（Toast）を表示
-        st.toast(random.choice(praises), icon="🧸")
-        
-        # 🔥 JavaScriptの紙吹雪を実行！
+        st.toast(random.choice(praises) + " 努力は裏切らない！", icon="🧸")
         st.session_state.playing_effect = True
-        
     else:
         if subj == "z": st.session_state.z -= 1
         else: st.session_state.k -= 1
         st.session_state.money -= 100
     
-    # URLを更新して保存
     st.query_params.update(z=st.session_state.z, k=st.session_state.k, m=st.session_state.money)
     
-    # 演出中なら少し待ってからリラン
     if st.session_state.playing_effect:
-        time.sleep(4.0) # 紙吹雪が下まで落ちるのを待つ
+        time.sleep(4.0) # 紙吹雪を堪能する時間
         st.session_state.playing_effect = False
         st.rerun()
     else:
         st.rerun()
 
-# 演出を実行する場所
 if st.session_state.playing_effect:
     play_conffeti()
 
@@ -150,7 +146,6 @@ with col_1:
     st.markdown('<div class="pop-card">', unsafe_allow_html=True)
     st.subheader("📘 財務会計")
     st.metric("完了", f"{st.session_state.z} / 70")
-    # ボタン自体も金メダルカラーに！
     if st.button("🏆 財務完了！ポチッ！", key="z_btn"): handle_click("z", True)
     if st.button("修正（-1）", key="z_undo"): handle_click("z", False)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -159,9 +154,6 @@ with col_2:
     st.markdown('<div class="pop-card">', unsafe_allow_html=True)
     st.subheader("📙 管理会計")
     st.metric("完了", f"{st.session_state.k} / 33")
-    # ボタン自体も銀メダルカラーに！
     if st.button("🥈 管理完了！ポチッ！", key="k_btn"): handle_click("k", True)
     if st.button("修正（-1）", key="k_undo"): handle_click("k", False)
     st.markdown('</div>', unsafe_allow_html=True)
-
-st.info("💡 使い方：ポチッとした後、4秒間はキラキラお祝いタイム！紙吹雪が下まで落ちるのを眺めてね。")
