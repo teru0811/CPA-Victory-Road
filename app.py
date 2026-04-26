@@ -26,11 +26,13 @@ st.markdown(f"""
         background-size: cover;
         background-attachment: fixed;
     }}
+    /* 【修正箇所】メッセージを白背景・青文字に */
     .top-message {{
         text-align: center; padding: 15px; font-size: 20px; font-weight: 800;
-        color: #FFFFFF; background: linear-gradient(90deg, #0288D1, #26C6DA);
-        border-bottom: 4px solid #FFD700; margin: -10px -10px 20px -10px;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        color: #0288D1; background: rgba(255, 255, 255, 0.95);
+        border: 3px solid #80D8FF; border-radius: 15px;
+        margin: -10px 0px 20px 0px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.1);
     }}
     .money-card, .pop-card {{
         background: white !important; border-radius: 20px; padding: 20px; 
@@ -43,14 +45,12 @@ st.markdown(f"""
     }}
     .stButton > button:hover {{ transform: scale(1.05); box-shadow: 0 8px 20px rgba(0,0,0,0.3); }}
     
-    /* 財務ボタン：勝利のゴールド */
     .stButton > button[key*="z_btn"] {{ background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%) !important; color: white !important; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }}
-    /* 管理ボタン：不屈のシルバー */
     .stButton > button[key*="k_btn"] {{ background: linear-gradient(135deg, #CFD8DC 0%, #78909C 100%) !important; color: white !important; text-shadow: 1px 1px 3px rgba(0,0,0,0.4); }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 🎉 画面全体に降り注ぐ紙吹雪 (JavaScript) ---
+# --- 4. 🎉 画面全体に降り注ぐ紙吹雪 ---
 def play_conffeti():
     confetti_js = """
     <canvas id="confetti-canvas" style="position:fixed;top:0;left:0;width:100vw;height:100vh;pointer-events:none;z-index:999999;"></canvas>
@@ -94,7 +94,6 @@ if 'daily_msg' not in st.session_state:
         "✨ 迷ったら進め！君の『やりたい』という気持ちが、何よりの正解だ！"
     ])
 
-# --- 📣 お祝い褒め言葉リスト ---
 praises = ["🎉 天才！", "㊗️ おめでとう！", "✨ 神対応！", "🏆 優勝！", "💖 最高！"]
 
 # --- 6. メイン表示 ---
@@ -129,7 +128,7 @@ def handle_click(subj, plus=True):
     st.query_params.update(z=st.session_state.z, k=st.session_state.k, m=st.session_state.money)
     
     if st.session_state.playing_effect:
-        time.sleep(4.0) # 紙吹雪を堪能する時間
+        time.sleep(4.0)
         st.session_state.playing_effect = False
         st.rerun()
     else:
