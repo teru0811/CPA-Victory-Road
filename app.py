@@ -42,28 +42,30 @@ st.markdown(f"""
         width: 100% !important; height: 60px !important; font-size: 18px !important;
         font-weight: bold !important; border-radius: 30px !important; 
     }}
+    /* ボタンの色：財務（青）と管理（水色） */
     .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #4FC3F7 0%, #81D4FA 100%) !important; color: white !important; }}
     .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #26C6DA 0%, #80DEEA 100%) !important; color: white !important; }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 🔗 URLパラメータ同期システム 🔗 ---
+# --- 4. 🔗 URLパラメータ同期システム（0円スタート） 🔗 ---
 query_params = st.query_params
 
-# セッション状態の初期化（URLに値があればそれを優先）
+# URLに値がなければ「0」から開始！
 if 'z' not in st.session_state:
-    st.session_state.z = int(query_params.get("z", 39))
+    st.session_state.z = int(query_params.get("z", 0))
 if 'k' not in st.session_state:
-    st.session_state.k = int(query_params.get("k", 15))
+    st.session_state.k = int(query_params.get("k", 0))
 if 'money' not in st.session_state:
-    st.session_state.money = int(query_params.get("m", 5400))
+    st.session_state.money = int(query_params.get("m", 0))
 
 # --- 📣 メッセージ設定 ---
 if 'daily_msg' not in st.session_state:
     st.session_state.daily_msg = random.choice([
         "今日の一歩が、合格発表の日の自分を救う。🔥",
         "未来の自分に、最高のプレゼントを贈ろう。💎",
-        "小さな一歩が、一番遠い場所へ連れて行ってくれる。🐾"
+        "小さな一歩が、一番遠い場所へ連れて行ってくれる。🐾",
+        "まっさらな貯金箱を、君の努力でいっぱいにしよう！✨"
     ])
 
 praises = {
@@ -114,7 +116,7 @@ def handle_click(subj, plus=True):
         else: st.session_state.k -= 1
         st.session_state.money -= 100
     
-    # URLパラメータを即座に更新
+    # URLパラメータを即座に更新（これが最強の保存！）
     st.query_params.update(
         z=st.session_state.z,
         k=st.session_state.k,
@@ -128,7 +130,7 @@ with col_1:
     st.markdown('<div class="pop-card">', unsafe_allow_html=True)
     st.subheader("📘 財務会計")
     st.metric("完了", f"{st.session_state.z} / 70")
-    st.progress(min(st.session_state.z / 70, 1.0))
+    st.progress(min(st.session_state.z / 70, 1.0) if st.session_state.z > 0 else 0.0)
     if st.button("💎 財務ポチッ！", key="z_btn"): handle_click("z", True)
     if st.button("修正: 財-1 & ¥-100", key="z_undo"): handle_click("z", False)
     st.markdown('</div>', unsafe_allow_html=True)
@@ -137,9 +139,9 @@ with col_2:
     st.markdown('<div class="pop-card">', unsafe_allow_html=True)
     st.subheader("📙 管理会計")
     st.metric("完了", f"{st.session_state.k} / 33")
-    st.progress(min(st.session_state.k / 33, 1.0))
+    st.progress(min(st.session_state.k / 33, 1.0) if st.session_state.k > 0 else 0.0)
     if st.button("❄️ 管理ポチッ！", key="k_btn"): handle_click("k", True)
     if st.button("修正: 管-1 & ¥-100", key="k_undo"): handle_click("k", False)
     st.markdown('</div>', unsafe_allow_html=True)
 
-st.info("💡 使い方：ボタンを押すとURLが変わります。そのURLを『ブックマーク』して次回から開けば、データは消えません！")
+st.info("💡 使い方：ポチるとURLが変わります。そのページをブックマーク（お気に入り）すればデータは一生消えません！")
