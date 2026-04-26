@@ -42,30 +42,29 @@ st.markdown(f"""
         width: 100% !important; height: 60px !important; font-size: 18px !important;
         font-weight: bold !important; border-radius: 30px !important; 
     }}
-    /* ボタンの色：財務（青）と管理（水色） */
     .stButton > button[key*="z_"] {{ background: linear-gradient(135deg, #4FC3F7 0%, #81D4FA 100%) !important; color: white !important; }}
     .stButton > button[key*="k_"] {{ background: linear-gradient(135deg, #26C6DA 0%, #80DEEA 100%) !important; color: white !important; }}
     </style>
     """, unsafe_allow_html=True)
 
-# --- 4. 🔗 URLパラメータ同期システム（0円スタート） 🔗 ---
+# --- 4. 🔗 URLパラメータ同期システム（貯金リセット仕様） 🔗 ---
 query_params = st.query_params
 
-# URLに値がなければ「0」から開始！
+# 進捗はこれまでの数字をセット
 if 'z' not in st.session_state:
-    st.session_state.z = int(query_params.get("z", 0))
+    st.session_state.z = int(query_params.get("z", 39))
 if 'k' not in st.session_state:
-    st.session_state.k = int(query_params.get("k", 0))
+    st.session_state.k = int(query_params.get("k", 15))
+# 貯金は 0 からスタート
 if 'money' not in st.session_state:
     st.session_state.money = int(query_params.get("m", 0))
 
 # --- 📣 メッセージ設定 ---
 if 'daily_msg' not in st.session_state:
     st.session_state.daily_msg = random.choice([
-        "今日の一歩が、合格発表の日の自分を救う。🔥",
-        "未来の自分に、最高のプレゼントを贈ろう。💎",
-        "小さな一歩が、一番遠い場所へ連れて行ってくれる。🐾",
-        "まっさらな貯金箱を、君の努力でいっぱいにしよう！✨"
+        "過去の努力は君の力。今日からの貯金は君の楽しみ！💎",
+        "心機一転、貯金箱をパンパンにしよう！🔥",
+        "未来の自分へのプレゼント、積み立て開始！🐾"
     ])
 
 praises = {
@@ -103,7 +102,6 @@ with col_b:
 
 st.write("---")
 
-# クリック処理の関数
 def handle_click(subj, plus=True):
     if plus:
         if subj == "z": st.session_state.z += 1
@@ -116,7 +114,6 @@ def handle_click(subj, plus=True):
         else: st.session_state.k -= 1
         st.session_state.money -= 100
     
-    # URLパラメータを即座に更新（これが最強の保存！）
     st.query_params.update(
         z=st.session_state.z,
         k=st.session_state.k,
@@ -143,5 +140,3 @@ with col_2:
     if st.button("❄️ 管理ポチッ！", key="k_btn"): handle_click("k", True)
     if st.button("修正: 管-1 & ¥-100", key="k_undo"): handle_click("k", False)
     st.markdown('</div>', unsafe_allow_html=True)
-
-st.info("💡 使い方：ポチるとURLが変わります。そのページをブックマーク（お気に入り）すればデータは一生消えません！")
